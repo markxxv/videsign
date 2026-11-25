@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <!-- VIDESIGN:HEAD -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>try{var t=localStorage.getItem('vd-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23000%27/%3E%3Crect x=%277%27 y=%277%27 width=%2718%27 height=%2718%27 fill=%27none%27 stroke=%27%23fafaf8%27/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- /VIDESIGN:HEAD -->
+  <title>Videsign — example landing</title>
+  <meta name="description" content="Example landing page composed only from Videsign components.">
+  <!-- VIDESIGN:CSS -->
+  <style type="text/tailwindcss">
+/* ==========================================================================
+   VIDESIGN — design system (Tailwind CSS v4, browser build)
+   Based on the design language of techspirit.barcelona
+   Source of truth: src/videsign.css → injected into every page by build.py
+   Rule: do not use clamp() or custom font sizes. Use the Tailwind scale with breakpoints.
+   ========================================================================== */
+
+/* ---------- 1. Tokens ---------------------------------------------------- */
+
+/* Theme-dependent tokens: point to CSS variables so light/dark can swap at runtime */
+@theme inline {
+  --color-bg: var(--bg);        /* page background (black in dark) */
+  --color-fg: var(--fg);        /* ink: text, borders, positive bands */
+  --color-tile: var(--tile);    /* surfaces: tiles, cards, capsules */
+  --color-rule: var(--rule);    /* hairline dividers (fg at 22%) */
+  --spacing-hang: var(--hang);  /* hanging margin: numbers/marks live here */
+  --spacing-pad: var(--pad);    /* page side padding */
+}
+
+/* Static tokens */
+@theme {
+  --color-ink: #000000;
+  --color-paper: #fafaf8;
+  --color-graphite: #1c1c1c;
+  --color-mist: #ececec;
+
+  /* Accent palette = track colours of the original (warm → cold) */
+  --color-flame: #fa6e1d;   /* AI-Native */
+  --color-amber: #ffa234;   /* Investment */
+  --color-sand: #ffcf82;    /* Robotics & Hardware */
+  --color-ice: #ceedff;     /* Gaming */
+  --color-sky: #9fd0ff;     /* Health */
+  --color-azure: #70adfb;   /* Creativity */
+
+  /* Two font families. Use the display font only for the large size. */
+  --font-display: "Inter Tight", "Favorit", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --tracking-display: -0.035em;
+  --tracking-mid: -0.03em;
+  --leading-display: 1.02;
+  --leading-mid: 1.05;
+  --leading-list: 1.2;
+
+  --container-page: 90rem;  /* 1440px */
+  --ease-expo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-blink: blink 1.6s ease-in-out infinite;
+  @keyframes blink { 50% { opacity: 0.2; } }
+}
+
+/* Runtime variables. Dark is the default theme. */
+:root, [data-theme="dark"] {
+  --bg: #000000; --fg: #fafaf8; --tile: #1c1c1c;
+  --rule: color-mix(in srgb, var(--fg) 22%, transparent);
+  --hang: 2.1rem; --pad: 1.25rem;
+}
+[data-theme="light"] { --bg: #fafaf8; --fg: #0b0b0b; --tile: #ececec; }
+@media (width >= 48rem) { :root { --hang: 3.2rem; --pad: 2.5rem; } }
+
+/* ---------- 2. Base ------------------------------------------------------ */
+@layer base {
+  html { @apply bg-bg text-fg font-sans antialiased scroll-smooth; }
+  body { @apply bg-bg text-sm leading-normal overflow-x-hidden; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { @apply outline-1 outline-fg outline-offset-4; }
+  ::selection { @apply bg-fg text-bg; }
+  html.t-anim, html.t-anim * { transition: background-color .6s ease, color .6s ease, border-color .6s ease !important; }
+  [data-lucide] { display: inline-block; }
+}
+
+@layer components {
+
+/* ---------- 3. Layout ---------------------------------------------------- */
+  .wrap { @apply mx-auto w-full max-w-page px-pad; }
+  .col  { @apply pl-hang; }                      /* one text edge for the whole page */
+  .hang { @apply absolute -left-hang top-0; }    /* thing that hangs left of the edge */
+  .grid-12 { @apply grid grid-cols-12 gap-x-3.5 md:gap-x-6; }
+  .section { @apply relative pt-24 md:pt-32 lg:pt-44; }
+  .section-sm { @apply relative pt-16 md:pt-24; }
+  .section-head { @apply flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mb-7; }
+  .divider { @apply border-t border-rule; }
+  .divider-strong { @apply border-t border-fg; }
+
+/* ---------- 4. Typography: two sizes ------------------------------------ */
+  /* .display → defined as @utility below (so other classes can @apply it) */
+  /* .display-mid → defined as @utility below (so other classes can @apply it) */
+  .text { @apply font-sans text-sm leading-normal tracking-normal; }
+  .text-lead { @apply font-sans text-base lg:text-lg leading-normal; }
+  .label { @apply block font-sans text-sm leading-normal mb-2.5; }
+  .muted { @apply text-fg/55; }
+  .faint { @apply text-fg/45; }
+  /* .sup → defined as @utility below (so other classes can @apply it) */
+  .num { @apply tabular-nums; }
+  .measure { @apply max-w-[54ch]; }
+  .prose-stack { @apply flex flex-col gap-3; }
+
+/* ---------- 5. Links ----------------------------------------------------- */
+  .link { @apply border-b border-current pb-px transition-opacity duration-200 hover:opacity-70; }
+  .display .link, .link-big { @apply border-b-[0.04em] pb-[0.02em]; }
+  .link-grow { @apply bg-[linear-gradient(currentColor,currentColor)] bg-no-repeat bg-left-bottom bg-[length:0_1px] transition-[background-size] duration-500 ease-expo hover:bg-[length:100%_1px]; }
+  .link-icon { @apply inline-flex items-center gap-2.5 border-b border-current pb-0.5 transition-opacity hover:opacity-70; }
+  .link-icon svg { @apply size-4; }
+
+/* ---------- 6. Buttons --------------------------------------------------- */
+  /* The outlined box from "See the full agenda" / "Register": display face, square, inverts on hover */
+  .btn { @apply relative inline-flex items-center gap-[0.35em] font-display font-normal whitespace-nowrap leading-none tracking-mid
+                 text-2xl md:text-3xl lg:text-5xl px-[0.42em] pt-[0.2em] pb-[0.24em]
+                 border border-fg text-fg bg-transparent cursor-pointer select-none
+                 transition-colors duration-250 hover:bg-fg hover:text-bg; }
+  .btn svg { @apply size-[0.7em]; }
+  .btn-solid { @apply bg-fg text-bg hover:bg-bg hover:text-fg; }
+  .btn-sm { @apply text-lg md:text-xl lg:text-2xl; }
+  .btn-lg { @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl; }
+  .btn:disabled, .btn[aria-disabled="true"] { @apply opacity-35 pointer-events-none; }
+  .btn-round { @apply inline-flex items-center justify-center size-10 rounded-full bg-tile text-fg cursor-pointer transition-colors duration-300 hover:bg-fg hover:text-bg; }
+  .btn-round svg { @apply size-5; }
+  /* Floating CTA: appears after the hero, solid & big on phones */
+  .fab { @apply fixed z-30 right-pad bottom-4 md:bottom-9 opacity-0 pointer-events-none transition-opacity duration-500; }
+  .fab.is-on { @apply opacity-100 pointer-events-auto; }
+  .fab .btn { @apply bg-bg max-md:bg-fg max-md:text-bg max-md:text-4xl; }
+
+/* ---------- 7. Switch (capsule with sliding knob) ------------------------ */
+  .switch { @apply inline-flex flex-col items-end gap-3 bg-transparent border-0 p-0 text-fg cursor-pointer; }
+  .switch:focus-visible { @apply outline-none; }
+  .switch:focus-visible .switch-track { @apply ring-1 ring-fg/60; }
+  .switch-track { @apply relative flex gap-0.5 p-1 rounded-full bg-tile; }
+  .switch-opt { @apply relative z-10 flex items-center justify-center size-8.5 md:size-10 text-fg not-italic text-xs font-semibold tracking-wide transition-colors duration-350; }
+  .switch-opt svg { @apply size-5; }
+  .switch-knob { @apply absolute top-1 left-1 size-8.5 md:size-10 rounded-full bg-fg transition-transform duration-450 ease-expo translate-x-[calc(100%+2px)]; }
+  .switch[aria-checked="true"] .switch-knob { @apply translate-x-0; }
+  .switch[aria-checked="true"] .switch-opt:nth-child(2),
+  .switch[aria-checked="false"] .switch-opt:nth-child(3) { @apply text-bg; }
+
+/* ---------- 8. Chips, pills, meta --------------------------------------- */
+  .chip { @apply inline-flex items-center gap-1.75 whitespace-nowrap; }
+  .dot { @apply block size-2.25 shrink-0 rounded-full bg-fg; }
+  .pill { @apply inline-flex items-center gap-1.75 rounded-full border border-fg py-0.75 pl-2 pr-2.5 whitespace-nowrap leading-normal; }
+  .pill-solid { @apply bg-fg text-bg; }
+  .pill-live .dot { @apply size-1.75 animate-blink motion-reduce:animate-none; }
+  .meta { @apply flex flex-wrap items-center gap-x-4.5 gap-y-1.5 text-sm; }
+
+/* ---------- 9. Header & menu (derived: the original has no nav bar) ----- */
+  .header { @apply absolute inset-x-0 top-0 z-40; }
+  .header-bar { @apply mx-auto flex max-w-page items-center justify-between gap-6 px-pad pt-5 md:pt-8; }
+  .header-nav { @apply hidden md:flex items-center gap-7 text-sm; }
+  .header-actions { @apply flex items-center gap-3; }
+  .nav-link { @apply link-grow-like; }
+  .menu { @apply fixed inset-0 z-50 flex flex-col bg-bg px-pad pt-5 pb-8 invisible opacity-0 transition-[opacity,visibility] duration-400; }
+  .menu.is-on { @apply visible opacity-100; }
+  .menu-top { @apply flex items-center justify-between; }
+  .menu-list { @apply mt-auto flex flex-col; }
+  .menu-link { @apply display block border-t border-rule py-2 transition-opacity duration-300; }
+  .menu-list:hover .menu-link { @apply opacity-30; }
+  .menu-list .menu-link:hover { @apply opacity-100; }
+  .menu-foot { @apply mt-8 flex justify-between text-sm text-fg/55; }
+
+/* ---------- 10. Logo ----------------------------------------------------- */
+  .logo { @apply relative inline-flex flex-col border border-current px-1.5 pt-1 pb-1.5 font-display text-base md:text-lg leading-none uppercase tracking-tight; }
+  .logo::after { @apply content-[''] absolute -left-1.5 top-1.5 -bottom-1.5 w-px bg-current; }
+  .logo::before { @apply content-[''] absolute -left-1.5 -bottom-1.5 right-1.5 h-px bg-current; }
+
+/* ---------- 11. Hero ----------------------------------------------------- */
+  .hero { @apply relative flex min-h-svh items-center justify-center overflow-hidden px-pad pt-28 pb-80 md:pb-84; }
+  .hero-bg { @apply absolute inset-0 z-0 pointer-events-none; }   /* ← slot for the WebGL/three.js layer */
+  .horizon { @apply absolute inset-x-0 top-1/2 h-px bg-fg/80 shadow-[0_0_6px_1px_color-mix(in_srgb,var(--fg)_60%,transparent),0_0_28px_5px_color-mix(in_srgb,var(--fg)_25%,transparent)]; }
+  .hero-title { @apply display relative z-10 max-w-[14ch]; }
+  .lockup { @apply relative z-10 inline-grid grid-cols-[auto_auto] items-baseline gap-x-[0.24em] font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+  .lockup-a { @apply col-start-1 row-start-1; }
+  .lockup-b { @apply col-start-2 row-start-1; }
+  .lockup-c { @apply col-start-2 row-start-2; }
+  .hero-foot { @apply absolute inset-x-0 bottom-7 md:bottom-11 z-10 mx-auto max-w-page px-pad; }
+  .hero-info { @apply mt-5 flex flex-col text-sm; }
+  .hero-actions { @apply mt-6 flex flex-wrap gap-x-5.5 gap-y-3; }
+
+/* ---------- 12. Band (positive) & KPI ----------------------------------- */
+  .band { @apply bg-fg text-bg py-14 md:py-20; }
+  .band-row { @apply flex flex-col gap-10 md:flex-row md:items-center md:justify-between md:gap-[6vw]; }
+  .kpi { @apply relative grid grid-cols-2 lg:grid-cols-4 border border-current
+                 before:absolute before:-left-3 before:top-3 before:-bottom-3.25 before:w-px before:bg-current
+                 after:absolute after:-left-3 after:right-3 after:-bottom-3.25 after:h-px after:bg-current; }
+  .kpi-cell { @apply flex flex-col gap-1 border-current px-5 pt-5 pb-6 md:px-7 md:pt-6.5 md:pb-7.5; }
+  .kpi-cell:not(:first-child) { @apply border-l; }
+  .kpi-value { @apply display-mid tabular-nums; }
+  .kpi-label { @apply text-sm opacity-60; }
+
+/* ---------- 13. Peek (rotating preview link) ---------------------------- */
+  .peek { @apply block w-full md:w-72 lg:w-80 shrink-0 text-inherit; }
+  .peek-frame { @apply relative block aspect-4/3 overflow-hidden rounded-sm bg-current/10 [clip-path:inset(0_round_4px)] transition-[clip-path] duration-700 ease-expo; }
+  .peek:hover .peek-frame, .peek:focus-visible .peek-frame { @apply [clip-path:inset(3%_round_4px)]; }
+  .peek-img { @apply absolute inset-0 size-full object-cover opacity-0 scale-108 grayscale contrast-105 transition-[opacity,transform,filter] duration-[1400ms,6000ms,500ms]; }
+  .peek-img.is-on { @apply opacity-100 scale-100; }
+  .peek:hover .peek-img { @apply grayscale-0; }
+  .peek-caption { @apply mt-3 flex items-baseline justify-between gap-4 border-t border-current/20 pt-2.5 text-sm; }
+  .peek-title { @apply link-grow-like; }
+  .peek:hover .peek-title { @apply bg-[length:100%_1px]; }
+  .peek-count { @apply opacity-50 tabular-nums; }
+
+/* ---------- 14. THE LINEUP (core pattern for Cases & Services) ---------- */
+  /* Desktop: one paragraph of large text. Each item has a media pill, a name and a sub-label.
+     A " / " separates the items.
+     Hover or focus on one item: the other items dim to 28%. A card follows the pointer.
+     Phone: the paragraph becomes a list with top lines. The media is on the left. */
+  .lineup { @apply flex flex-col font-display font-normal text-3xl tracking-tight leading-[1.08]
+                   md:block md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl md:leading-list md:tracking-display md:max-w-[24ch]; }
+  .lineup-item { @apply grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-3.5 border-t border-rule py-2.5 cursor-default outline-none transition-opacity duration-300
+                        md:inline md:border-0 md:p-0; }
+  a.lineup-item { @apply cursor-pointer; }
+  .lineup-item:focus-visible .lineup-name { @apply underline decoration-1 underline-offset-[0.12em]; }
+  .lineup-item + .lineup-item::before, .lineup-more::before { @apply hidden md:inline content-['_/_'] opacity-25; }
+  .lineup-media { @apply row-span-2 flex gap-1 md:inline-flex md:gap-[0.08em] md:mr-[0.18em] md:align-[-0.06em]; }
+  .lineup-face { @apply inline-block w-16 h-20 rounded-full bg-tile bg-cover bg-center object-cover grayscale contrast-[1.12] brightness-[.86] transition-[filter] duration-500 ease-expo
+                        md:w-[1.12em] md:h-[0.74em]; }
+  .lineup-media.is-pair .lineup-face { @apply w-7.5 md:w-[1.12em]; }
+  .lineup-icon { @apply relative inline-block w-16 h-16 rounded-full bg-tile text-fg transition-colors duration-500
+                        md:w-[1.12em] md:h-[0.74em]; }
+  .lineup-icon svg { @apply absolute inset-0 m-auto size-7 md:size-[0.42em] stroke-[1.5]; }  /* out of flow → pill sits on the baseline like a glyph */
+  .lineup-num { @apply sup hidden md:inline; }
+  .lineup-name { @apply self-end md:self-auto; }
+  .lineup-sub { @apply self-start text-fg/45; }       /* colour it with text-flame / text-sky / … */
+  .lineup-more { @apply block border-t border-rule py-4 text-fg/45 transition-colors duration-300 hover:text-fg md:inline md:border-0 md:p-0; }
+  /* states */
+  .lineup-item:hover .lineup-face, .lineup-item.is-on .lineup-face { @apply grayscale-0 contrast-100 brightness-100; }
+  .lineup-item.is-on .lineup-icon { @apply bg-fg text-bg; }
+  .lineup.is-active .lineup-item, .lineup.is-active .lineup-more { @apply opacity-28; }
+  .lineup.is-active .lineup-item.is-on { @apply opacity-100; }
+  .lineup-note { @apply mt-7 text-sm opacity-45; }
+  /* the floating preview card */
+  .lineup-card { @apply fixed left-0 top-0 z-30 w-50 overflow-hidden rounded-2xl bg-tile text-fg opacity-0 pointer-events-none transition-opacity duration-200
+                        max-md:inset-x-4 max-md:top-auto max-md:bottom-24 max-md:w-auto max-md:grid max-md:grid-cols-[6rem_1fr] max-md:transform-none!; }
+  .lineup-card.is-on { @apply opacity-100; }
+  .lineup-card-img { @apply block w-full aspect-square object-cover bg-graphite max-md:h-full max-md:aspect-auto; }
+  .lineup-card-icon { @apply flex aspect-square items-center justify-center bg-fg text-bg max-md:aspect-auto; }
+  .lineup-card-icon svg { @apply size-10 stroke-[1.25]; }
+  .lineup-card-body { @apply flex flex-col gap-0.75 px-3.5 pt-3 pb-3.5 font-sans text-xs leading-snug tracking-normal; }
+  .lineup-card-body em { @apply not-italic opacity-55; }
+
+/* ---------- 15. Track list (accordion with hanging marks) --------------- */
+  .tracks { @apply relative list-none font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+  .track { @apply relative; }
+  .track-btn { @apply block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-inherit [font:inherit]; }
+  .track-btn:focus-visible { @apply outline-offset-6; }
+  .track-mark { @apply absolute -left-hang top-[0.16em] size-[0.62em] md:size-[0.68em] -ml-[0.06em] md:-ml-[0.24em] flex items-center justify-center rounded-full border border-current transition-colors duration-400; }
+  .track-mark svg { @apply size-[0.55em] stroke-[1.25]; }
+  .track-name { @apply inline-block transition-opacity duration-350; }
+  .track-body { @apply grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-450 ease-expo; }
+  .track-body > * { @apply min-h-0 max-w-[54ch] overflow-hidden font-sans text-sm leading-normal tracking-normal; }
+  .tracks.is-active .track-name { @apply opacity-30; }
+  .track.is-hot .track-name, .track.is-open .track-name { @apply opacity-100; }
+  .track.is-open .track-body { @apply grid-rows-[1fr] opacity-100; }
+  .track.is-open .track-body > * { @apply pt-3 pb-5.5; }
+  .track.is-open .track-mark { @apply bg-fg text-bg; }
+  .tracks-sm { @apply text-3xl md:text-4xl lg:text-5xl; }
+
+/* ---------- 16. Numbered list (hanging numbers) ------------------------- */
+  .numlist { @apply list-none; }
+  .numlist-item { @apply relative display; }
+  .numlist-n { @apply absolute -left-hang top-[0.42em] font-sans text-sm leading-none tracking-normal tabular-nums; }
+
+/* ---------- 17. Feature & sessions -------------------------------------- */
+  .feature { @apply grid items-center gap-y-7 border-t border-fg pt-5.5 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-x-6; }
+  .feature-body { @apply flex min-w-0 flex-col gap-6.5; }
+  .feature-title { @apply display text-balance; }
+  .feature-desc { @apply flex max-w-[52ch] flex-col gap-3 text-sm; }
+  .feature-media { @apply relative aspect-square w-3/5 max-w-75 max-lg:-order-1 lg:w-full lg:max-w-full rounded-2xl bg-tile overflow-hidden; }  /* slot for orb/WebGL */
+  .sessions { @apply mt-16 grid list-none gap-y-20 md:grid-cols-2 md:gap-x-15; }
+  .session { @apply flex min-w-0 flex-col gap-5.5 border-t border-fg pt-5.5; }
+  .session-title { @apply display-mid; }
+  .session-desc { @apply flex max-w-[46ch] flex-col gap-3 text-sm; }
+
+/* ---------- 18. People ---------------------------------------------------- */
+  .people { @apply grid max-w-md list-none grid-cols-4 gap-3.5 text-sm; }
+  .people-3 { @apply max-w-87 grid-cols-3; }
+  .person { @apply flex min-w-0 flex-col gap-2.5; }
+  .person-photo { @apply block aspect-4/5 w-full rounded-2xl bg-tile object-cover grayscale contrast-[1.12] brightness-[.86] transition-[filter] duration-500 ease-expo; }
+  .person:hover .person-photo { @apply grayscale-0 contrast-100 brightness-100; }
+  .person-name { @apply block; }
+  .person-org { @apply block text-fg/45; }
+  .person-role { @apply mt-0.5 block text-fg/55; }
+
+/* ---------- 19. Mosaic ---------------------------------------------------- */
+  .mosaic { @apply grid grid-flow-dense grid-cols-6 auto-rows-[24vw] gap-2.5 md:grid-cols-12 md:auto-rows-[9vw] md:gap-3.5 2xl:auto-rows-36; }
+  .tile { @apply relative flex items-center justify-center overflow-hidden rounded-2xl bg-tile text-xs text-fg/45; }
+  .tile img { @apply absolute inset-0 size-full object-cover transition-transform duration-1200 ease-expo; }
+  .tile:hover img { @apply scale-[1.025]; }
+  .tile-cap { @apply pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-1.5 flex-col gap-0.5 bg-linear-to-t from-black/60 to-transparent px-3 pt-9 pb-2.5 text-left text-xs leading-snug text-paper opacity-0 transition-[opacity,transform] duration-500 ease-expo
+                     md:px-4.5 md:pt-12 md:pb-4 md:text-sm; }
+  .tile-cap em { @apply not-italic opacity-70; }
+  .tile:hover .tile-cap, .tile.is-seen .tile-cap { @apply translate-y-0 opacity-100; }
+  .tile-6x3 { @apply col-span-6 row-span-2 md:row-span-3; }
+  .tile-6x2 { @apply col-span-6 row-span-2; }
+  .tile-4x3 { @apply col-span-3 row-span-2 md:col-span-4 md:row-span-3; }
+  .tile-4x2 { @apply col-span-3 row-span-2 md:col-span-4; }
+  .tile-3x3 { @apply col-span-3 row-span-2 md:row-span-3; }
+  .tile-3x2 { @apply col-span-3 row-span-2; }
+
+/* ---------- 20. Countdown ------------------------------------------------- */
+  .countdown { @apply display flex flex-wrap gap-x-[0.5em] tabular-nums; }
+  .countdown-unit { @apply whitespace-nowrap; }
+
+/* ---------- 21. Word reveal (manifesto) ---------------------------------- */
+  .reveal { @apply display max-w-[21ch] mb-[0.62em]; }
+  .reveal .word { @apply opacity-16 transition-opacity duration-350 ease-linear motion-reduce:opacity-100; }
+  .reveal .word.is-on { @apply opacity-100; }
+
+/* ---------- 22. Partners / logos ----------------------------------------- */
+  .tier { @apply border-t border-rule pt-3.5; }
+  .tier + .tier { @apply mt-12 md:mt-14; }
+  .tier .label { @apply mb-5 md:mb-7; }
+  .logos { @apply grid list-none grid-cols-3 items-center justify-items-start gap-x-4.5 gap-y-5 md:grid-cols-5 md:gap-x-8 md:gap-y-6.5 lg:grid-cols-7; }
+  .logos-lg { @apply grid-cols-2 md:grid-cols-4 max-w-250; }
+  .logo-mark { @apply font-display text-lg md:text-xl tracking-tight leading-none opacity-80 transition-opacity duration-250 hover:opacity-100; }
+  .logos-lg .logo-mark { @apply text-2xl md:text-3xl opacity-100; }
+
+/* ---------- 23. Forms (derived: the original has none) ------------------ */
+  .form { @apply grid gap-x-6 gap-y-7 md:grid-cols-2; }
+  .field { @apply flex flex-col gap-2; }
+  .field-full { @apply md:col-span-2; }
+  .field-label { @apply text-sm text-fg/55; }
+  .field-hint { @apply text-xs text-fg/45; }
+  .field-error { @apply text-xs text-flame; }
+  /* .input → defined as @utility below (so other classes can @apply it) */
+  .input[aria-invalid="true"] { @apply border-flame; }
+  .input-big { @apply font-display text-3xl md:text-5xl tracking-mid; }
+  .textarea { @apply input min-h-32 resize-y; }
+  .select-wrap { @apply relative; }
+  .select { @apply input cursor-pointer appearance-none pr-8; }
+  .select-wrap svg { @apply pointer-events-none absolute right-0 top-1/2 size-4 -translate-y-1/2; }
+  .select option { @apply bg-bg text-fg; }
+  .check { @apply inline-flex cursor-pointer items-start gap-3 text-sm; }
+  .check input { @apply mt-0.5 size-4 shrink-0 cursor-pointer accent-fg; }
+  .choice { @apply inline-flex cursor-pointer select-none items-center gap-1.75 rounded-full border border-rule py-1.5 px-3.5 text-sm transition-colors hover:border-fg has-checked:border-fg has-checked:bg-fg has-checked:text-bg; }
+  .choice input { @apply sr-only; }
+
+/* ---------- 24. Drawer (side sheet / bottom sheet) ---------------------- */
+  .scrim { @apply fixed inset-0 z-60 bg-black/55 opacity-0 pointer-events-none transition-opacity duration-300; }
+  .scrim.is-on { @apply opacity-100 pointer-events-auto; }
+  .drawer { @apply fixed z-61 overflow-y-auto overscroll-contain bg-bg transition-transform duration-450 ease-expo
+                   inset-x-0 bottom-0 max-h-[92svh] translate-y-full rounded-t-2xl border-t border-rule px-pad pt-3 pb-12
+                   md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-160 md:translate-y-0 md:translate-x-full md:rounded-none md:border-t-0 md:border-l md:px-11 md:pt-8.5 md:pb-15; }
+  .drawer.is-on { @apply translate-y-0 md:translate-x-0; }
+  .drawer-grab { @apply mx-auto mb-4 block h-1 w-10 rounded-full bg-rule md:hidden; }
+  .drawer-close { @apply sticky top-0 z-10 float-right cursor-pointer bg-bg pb-2 pl-3.5 pt-1 text-sm opacity-60 transition-opacity hover:opacity-100; }
+
+/* ---------- 25. Footer / info grid -------------------------------------- */
+  .footer { @apply pt-24 pb-36 md:pt-32 md:pb-15; }
+  .info-grid { @apply grid gap-y-5.5 border-t border-rule pt-5 text-sm md:grid-cols-4 md:gap-x-6; }
+  .info-key { @apply block text-fg/50; }
+  .info-grid a { @apply break-words; }
+
+/* ---------- 26. Docs-only helpers (used by index.html) ------------------ */
+  .doc-nav { @apply hidden lg:block sticky top-0 h-svh w-56 shrink-0 overflow-y-auto border-r border-rule py-8 pl-pad pr-4 text-sm; }
+  .doc-nav a:not(.logo) { @apply block py-1 text-fg/55 transition-colors hover:text-fg; }
+  .doc-nav .doc-nav-group { @apply mt-6 mb-1 block text-xs uppercase tracking-widest text-fg/35; }
+  .doc-section { @apply scroll-mt-6 border-t border-rule px-pad pt-10 pb-20 md:pt-12; }
+  .doc-h { @apply display-mid mb-2; }
+  .doc-lead { @apply mb-8 max-w-[70ch] text-sm text-fg/60; }
+  .specimen { @apply mb-10 overflow-hidden rounded-2xl border border-rule; }
+  .specimen-head { @apply flex flex-wrap items-center justify-between gap-2 border-b border-rule px-4 py-2.5 text-xs text-fg/60; }
+  .specimen-demo { @apply relative p-5 md:p-8; }
+  .specimen-code { @apply relative border-t border-rule bg-tile/50; }
+  .specimen-code pre { @apply max-h-80 overflow-auto p-4 font-mono text-xs leading-relaxed text-fg/80; }
+  .copy { @apply absolute right-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-bg px-2.5 py-1 text-xs text-fg/70 transition-colors hover:text-fg; }
+  .copy svg { @apply size-3.5; }
+  .cls { @apply rounded bg-tile px-1.5 py-0.5 font-mono text-xs text-fg; }
+  .swatch { @apply flex flex-col gap-2 text-xs; }
+  .swatch-chip { @apply h-20 rounded-xl border border-rule; }
+}
+
+/* Primitives defined as @utility so components can @apply them.
+   They still work as plain classes in HTML: class="display", class="sup", class="input". */
+@utility display { @apply font-display font-normal text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+@utility display-mid { @apply font-display font-normal text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-mid tracking-mid text-balance; }
+@utility sup { @apply relative top-[0.32em] ml-[0.28em] align-top font-sans text-sm leading-none tracking-normal whitespace-nowrap; }
+@utility input { @apply w-full rounded-none border-0 border-b border-rule bg-transparent py-3 font-sans text-base text-fg outline-none transition-colors duration-250
+                  placeholder:text-fg/30 hover:border-fg/50 focus:border-fg focus-visible:outline-none md:text-lg; }
+@utility link-grow-like {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px;
+  transition: background-size .5s var(--ease-expo);
+  &:hover, &:focus-visible { background-size: 100% 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
+  </style>
+  <!-- /VIDESIGN:CSS -->
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-bar">
+    <a class="logo" href="#top" aria-label="Videsign"><span>Videsign</span><span>Studio</span><span>2026</span></a>
+    <nav class="header-nav" aria-label="Main">
+      <a class="nav-link" href="#services">Services</a>
+      <a class="nav-link" href="#cases">Cases</a>
+      <a class="nav-link" href="#process">Process</a>
+      <a class="nav-link" href="#contact">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <button class="switch" type="button" role="switch" aria-checked="false" data-switch="theme" aria-label="Light theme">
+        <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span><span class="switch-opt"><i data-lucide="sun"></i></span><span class="switch-opt"><i data-lucide="moon"></i></span></span>
+      </button>
+      <button class="btn-round md:hidden" type="button" data-menu="menu" aria-expanded="false" aria-label="Open menu"><i data-lucide="menu"></i></button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" role="dialog" aria-label="Menu">
+  <div class="menu-top">
+    <span class="logo"><span>Videsign</span><span>Studio</span><span>2026</span></span>
+    <button class="btn-round" type="button" data-menu="menu" aria-label="Close menu"><i data-lucide="x"></i></button>
+  </div>
+  <nav class="menu-list" aria-label="Mobile">
+    <a class="menu-link" href="#services">Services</a>
+    <a class="menu-link" href="#cases">Cases</a>
+    <a class="menu-link" href="#process">Process</a>
+    <a class="menu-link" href="#contact">Contact</a>
+  </nav>
+  <div class="menu-foot"><span>Barcelona · Remote</span><a class="link" href="mailto:hello@videsign.studio">hello@videsign.studio</a></div>
+</div>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero" aria-label="Intro">
+    <div class="hero-bg" aria-hidden="true"><!-- WebGL / three.js layer goes here --><span class="horizon"></span></div>
+    <h1 class="lockup"><span class="lockup-a">We</span> <span class="lockup-b">design what</span> <span class="lockup-c">comes next</span></h1>
+    <div class="hero-foot"><div class="col">
+      <p class="hero-info"><span>Independent design studio exploring the future</span><span>through interfaces, identity and motion.</span><span class="muted">Barcelona · Since 2014</span></p>
+      <p class="hero-actions"><a class="link" href="#contact">Start a project</a><a class="link" href="#cases">See the cases</a></p>
+    </div></div>
+  </section>
+
+  <!-- Band: key facts in positive -->
+  <section class="band" aria-label="Key facts">
+    <div class="wrap band-row">
+      <div class="col"><p class="display max-w-[22ch]"><span class="whitespace-nowrap"><span data-count="12">12</span> years.</span> <span class="whitespace-nowrap"><span data-count="140" data-suffix="+">140+</span> projects.</span> <span class="whitespace-nowrap"><span data-count="9">9</span> awards.</span></p></div>
+      <a class="peek" href="#cases">
+        <span class="peek-frame">
+          <img class="peek-img is-on" alt="" src="https://picsum.photos/seed/vd-peek1/800/600">
+          <img class="peek-img" alt="" src="https://picsum.photos/seed/vd-peek2/800/600">
+          <img class="peek-img" alt="" src="https://picsum.photos/seed/vd-peek3/800/600">
+        </span>
+        <span class="peek-caption"><span class="peek-title">Selected work</span><span class="peek-count"><span data-peek-n>01</span> / 03</span></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Services: the Lineup pattern with icons -->
+  <section class="section wrap" id="services" aria-label="Services">
+    <div class="col">
+      <span class="label">What we do</span>
+      <p class="lineup">
+        <span class="lineup-item" data-icon="pen-tool" data-title="Brand identity" data-sub="Strategy · Naming · Systems" data-text="Identities built as systems: logo, type, colour and rules that scale." data-meta="4–8 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="pen-tool"></i></span></span><span class="lineup-name">Brand identity</span> <span class="lineup-sub text-flame">Strategy</span></span>
+        <span class="lineup-item" data-icon="layout-grid" data-title="Product design" data-sub="UX · UI · Prototyping" data-text="Web and mobile products from first flow to production-ready UI." data-meta="6–16 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="layout-grid"></i></span></span><span class="lineup-name">Product design</span> <span class="lineup-sub text-amber">UX/UI</span></span>
+        <span class="lineup-item" data-icon="layers" data-title="Design systems" data-sub="Tokens · Components · Docs" data-text="One source of truth for designers and developers, documented and versioned." data-meta="4–10 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="layers"></i></span></span><span class="lineup-name">Design systems</span> <span class="lineup-sub text-sand">Tokens</span></span>
+        <span class="lineup-item" data-icon="clapperboard" data-title="Motion" data-sub="3D · WebGL · Video" data-text="Motion language, 3D scenes and real-time WebGL backgrounds." data-meta="2–8 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="clapperboard"></i></span></span><span class="lineup-name">Motion</span> <span class="lineup-sub text-ice">WebGL</span></span>
+        <span class="lineup-item" data-icon="code" data-title="Development" data-sub="Front-end · CMS" data-text="Fast static sites and front-ends, shipped with the design system." data-meta="4–12 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="code"></i></span></span><span class="lineup-name">Development</span> <span class="lineup-sub text-sky">Front-end</span></span>
+        <span class="lineup-item" data-icon="compass" data-title="Art direction" data-sub="Campaigns · Photo · Editorial" data-text="Concepts and visual direction for launches and campaigns." data-meta="On demand"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="compass"></i></span></span><span class="lineup-name">Art direction</span> <span class="lineup-sub text-azure">Campaigns</span></span>
+        <a class="lineup-more" href="#contact">and something new…</a>
+      </p>
+      <div class="lineup-card" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- Cases: the Lineup pattern with thumbnails, items are links -->
+  <section class="section wrap" id="cases" aria-label="Cases">
+    <div class="col">
+      <span class="label">Selected cases</span>
+      <p class="lineup">
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-nimble/400/400" data-title="Nimble Diagnostics" data-sub="Health · Brand + product" data-text="A calmer patient app: bookings up 38%." data-meta="2025"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-nimble/240/160"></span><span class="lineup-name">Nimble Diagnostics</span> <span class="lineup-sub text-sky">Health</span></a>
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-prosper/400/400" data-title="Prosper AI" data-sub="AI · Product design" data-text="Voice-agent console for healthcare teams." data-meta="2025"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-prosper/240/160"></span><span class="lineup-name">Prosper AI</span> <span class="lineup-sub text-flame">AI-Native</span></a>
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-protofy/400/400" data-title="Protofy" data-sub="Robotics · Identity" data-text="An identity that moves like the machines it names." data-meta="2024"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-protofy/240/160"></span><span class="lineup-name">Protofy</span> <span class="lineup-sub text-sand">Robotics</span></a>
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-housfy/400/400" data-title="Housfy" data-sub="Proptech · Design system" data-text="140 components, one source of truth." data-meta="2024"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-housfy/240/160"></span><span class="lineup-name">Housfy</span> <span class="lineup-sub text-amber">Investment</span></a>
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-orbit/400/400" data-title="Orbit Games" data-sub="Gaming · Motion + web" data-text="A launch site with a real-time world behind it." data-meta="2023"><span class="lineup-media is-pair"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-orbit/240/160"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-orbit2/240/160"></span><span class="lineup-name">Orbit Games</span> <span class="lineup-sub text-ice">Gaming</span></a>
+        <a class="lineup-item" href="#case" data-img="https://picsum.photos/seed/vd-llotja/400/400" data-title="Llotja Studio" data-sub="Culture · Art direction" data-text="Campaign for a 600-year-old building." data-meta="2023"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-llotja/240/160"></span><span class="lineup-name">Llotja Studio</span> <span class="lineup-sub text-azure">Creativity</span></a>
+        <a class="lineup-more" href="#case">all cases…</a>
+      </p>
+      <div class="lineup-card" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- Featured case + two case cards -->
+  <section class="section wrap" id="case" aria-label="Featured case">
+    <div class="col">
+      <span class="label">Featured</span>
+      <article class="feature">
+        <div class="feature-body">
+          <p class="meta"><span>2025 · 14 weeks</span><span class="chip"><i class="dot bg-flame"></i>AI-Native</span><span class="pill pill-live"><i class="dot"></i>Live product</span></p>
+          <h2 class="feature-title">AI has a voice. We gave it an interface.</h2>
+          <div class="feature-desc"><p>Prosper AI's agents answer thousands of patient calls a day. We designed the console where humans supervise them: what the agent heard, what it decided, and when a person needs to step in.</p><p>From research to a production design system in fourteen weeks.</p></div>
+          <ul class="people">
+            <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=12"><span><span class="person-name">Marcos Valera</span><span class="person-org text-flame">Videsign</span><span class="person-role">Lead</span></span></li>
+            <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=33"><span><span class="person-name">Dani Diestre</span><span class="person-org text-flame">Videsign</span></span></li>
+            <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=47"><span><span class="person-name">Laia Puig</span><span class="person-org text-sky">Prosper AI</span></span></li>
+            <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=59"><span><span class="person-name">Martí Norberto</span><span class="person-org text-sky">Prosper AI</span><span class="person-role">Client</span></span></li>
+          </ul>
+        </div>
+        <div class="feature-media" aria-hidden="true"><!-- orb / WebGL slot --></div>
+      </article>
+      <ul class="sessions">
+        <li class="session">
+          <p class="meta"><span>2024</span><span class="chip"><i class="dot bg-sky"></i>Health</span><span class="muted">Brand + product</span></p>
+          <h3 class="session-title">Rebuilding healthcare's front door</h3>
+          <div class="session-desc"><p>Before a patient sees a doctor, calls must be answered and appointments scheduled. We made that first step calm.</p></div>
+          <a class="link-icon self-start" href="#">Read the case <i data-lucide="arrow-right"></i></a>
+        </li>
+        <li class="session">
+          <p class="meta"><span>2024</span><span class="chip"><i class="dot bg-amber"></i>Investment</span><span class="muted">Design system</span></p>
+          <h3 class="session-title">The unfiltered truth about scaling a UI</h3>
+          <div class="session-desc"><p>Six products, three teams, one system. What we kept, what we deleted and why.</p></div>
+          <a class="link-icon self-start" href="#">Read the case <i data-lucide="arrow-right"></i></a>
+        </li>
+      </ul>
+      <p class="mt-16"><a class="btn" href="#cases"><span>See all the cases</span><i data-lucide="arrow-right"></i></a></p>
+    </div>
+  </section>
+
+  <!-- Process: track list -->
+  <section class="section wrap" id="process" aria-label="Process">
+    <div class="col">
+      <span class="label">How we work. Click each step to learn more.</span>
+      <ul class="tracks" data-single>
+        <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark" aria-hidden="true"><i data-lucide="search"></i></span><span class="track-name">Discover<span class="sup">1</span></span></button>
+          <div class="track-body"><p>Interviews, audits and a hard look at the numbers. We leave with one page that says what we are solving.</p></div></li>
+        <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark" aria-hidden="true"><i data-lucide="pen-tool"></i></span><span class="track-name">Define<span class="sup">2</span></span></button>
+          <div class="track-body"><p>Concepts, directions and the first version of the system: tokens, type and the components that matter.</p></div></li>
+        <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark" aria-hidden="true"><i data-lucide="layers"></i></span><span class="track-name">Design<span class="sup">3</span></span></button>
+          <div class="track-body"><p>Screens and states, tested with real people every two weeks.</p></div></li>
+        <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark" aria-hidden="true"><i data-lucide="rocket"></i></span><span class="track-name">Deliver<span class="sup">4</span></span></button>
+          <div class="track-body"><p>Production code or a hand-off your developers will actually enjoy, plus documentation.</p></div></li>
+      </ul>
+      <p class="mt-12 max-w-[46ch]">Want the long version? <button class="link cursor-pointer" type="button" data-open="manifesto">Read our manifesto</button></p>
+    </div>
+  </section>
+
+  <!-- KPI grid -->
+  <section class="section wrap" aria-label="Numbers">
+    <div class="col">
+      <span class="label">In numbers</span>
+      <div class="kpi">
+        <p class="kpi-cell"><span class="kpi-value" data-count="140" data-suffix="+">140+</span><span class="kpi-label">projects shipped</span></p>
+        <p class="kpi-cell"><span class="kpi-value" data-count="38" data-suffix="%">38%</span><span class="kpi-label">average conversion lift</span></p>
+        <p class="kpi-cell"><span class="kpi-value" data-count="12">12</span><span class="kpi-label">people in the studio</span></p>
+        <p class="kpi-cell"><span class="kpi-value" data-count="9">9</span><span class="kpi-label">awards</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mosaic -->
+  <section class="section-sm wrap" aria-label="Studio">
+    <div class="col mb-7"><span class="label">Moments from the studio</span></div>
+    <div class="mosaic">
+      <figure class="tile tile-6x3"><img alt="" src="https://picsum.photos/seed/vd-m1/1200/800" loading="lazy"><figcaption class="tile-cap"><span>Workshop with Prosper AI</span><em>2025</em></figcaption></figure>
+      <figure class="tile tile-3x3"><img alt="" src="https://picsum.photos/seed/vd-m2/600/800" loading="lazy"><figcaption class="tile-cap"><span>Type tests</span><em>2025</em></figcaption></figure>
+      <figure class="tile tile-3x3"><img alt="" src="https://picsum.photos/seed/vd-m3/600/800" loading="lazy"><figcaption class="tile-cap"><span>Studio day</span><em>2024</em></figcaption></figure>
+      <figure class="tile tile-6x2"><img alt="" src="https://picsum.photos/seed/vd-m4/1200/600" loading="lazy"><figcaption class="tile-cap"><span>Launch night</span><em>2024</em></figcaption></figure>
+      <figure class="tile tile-6x2"><img alt="" src="https://picsum.photos/seed/vd-m5/1200/600" loading="lazy"><figcaption class="tile-cap"><span>Motion review</span><em>2024</em></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- Clients -->
+  <section class="section wrap" aria-label="Clients">
+    <div class="col">
+      <div class="tier">
+        <span class="label">Main clients</span>
+        <ul class="logos logos-lg"><li class="logo-mark">CaixaBank</li><li class="logo-mark">Damm</li><li class="logo-mark">EAE</li><li class="logo-mark">MWCapital</li></ul>
+      </div>
+      <div class="tier">
+        <span class="label">Also worked with</span>
+        <ul class="logos"><li class="logo-mark">adamo</li><li class="logo-mark">airbnb</li><li class="logo-mark">bis</li><li class="logo-mark">Danone</li><li class="logo-mark">deel.</li><li class="logo-mark">esade</li><li class="logo-mark">olx</li><li class="logo-mark">IFCO</li><li class="logo-mark">JetBrains</li><li class="logo-mark">Naturgy</li><li class="logo-mark">Triin</li><li class="logo-mark">Shopfully</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section wrap" id="contact" aria-label="Contact">
+    <div class="col">
+      <span class="label">Start a project</span>
+      <h2 class="display mb-12 max-w-[16ch]">Tell us what comes next.</h2>
+      <form class="form max-w-4xl" onsubmit="event.preventDefault()">
+        <label class="field"><span class="field-label">Name</span><input class="input" type="text" placeholder="Your name" autocomplete="name"></label>
+        <label class="field"><span class="field-label">Email</span><input class="input" type="email" placeholder="you@company.com" autocomplete="email"></label>
+        <div class="field field-full"><span class="field-label">What do you need?</span>
+          <div class="flex flex-wrap gap-2">
+            <label class="choice"><input type="checkbox" checked>Brand identity</label>
+            <label class="choice"><input type="checkbox">Product design</label>
+            <label class="choice"><input type="checkbox">Design system</label>
+            <label class="choice"><input type="checkbox">Motion</label>
+            <label class="choice"><input type="checkbox">Development</label>
+          </div>
+        </div>
+        <label class="field"><span class="field-label">Budget</span><span class="select-wrap"><select class="select"><option>€10–25k</option><option>€25–60k</option><option>€60k+</option></select><i data-lucide="chevron-down"></i></span></label>
+        <label class="field"><span class="field-label">Timing</span><input class="input" type="text" placeholder="e.g. Q1 2027"></label>
+        <label class="field field-full"><span class="field-label">Project</span><textarea class="textarea" placeholder="A few lines are enough"></textarea></label>
+        <label class="check field-full"><input type="checkbox">I agree to the privacy policy.</label>
+        <p class="field-full"><button class="btn" type="submit"><span>Send</span><i data-lucide="arrow-right"></i></button></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer wrap">
+    <div class="col"><div class="info-grid">
+      <div><span class="info-key">Studio</span><span>Carrer del Consolat de Mar<br>Barcelona</span></div>
+      <div><span class="info-key">Hours</span><span>Mon–Fri, 9:00–18:00 CET</span></div>
+      <div><span class="info-key">Contact</span><a class="link" href="mailto:hello@videsign.studio">hello@videsign.studio</a></div>
+      <div><span class="info-key">Design system</span><a class="link" href="index.html">Videsign docs</a></div>
+    </div></div>
+  </footer>
+</main>
+
+<a class="fab" href="#contact" aria-label="Start a project"><span class="btn">Start a project</span></a>
+
+<!-- Drawer: manifesto with word reveal -->
+<div class="scrim" id="manifesto-scrim" hidden></div>
+<aside class="drawer" id="manifesto" data-scrim="manifesto-scrim" role="dialog" aria-modal="true" aria-label="Manifesto" hidden>
+  <span class="drawer-grab"></span>
+  <button class="drawer-close" type="button" data-close>Close</button>
+  <span class="label mb-6">Manifesto</span>
+  <p class="reveal" data-reveal>For decades, design made things look right. Now it decides how people and machines talk to each other.</p>
+  <p class="reveal" data-reveal>The interface is no longer a screen. It is a conversation.</p>
+  <p class="reveal" data-reveal>We design what comes next.</p>
+  <p class="display"><a class="link" href="#contact">Start a project</a></p>
+</aside>
+
+<script src="videsign.js"></script>
+</body>
+</html>

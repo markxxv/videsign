@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <!-- VIDESIGN:HEAD -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>try{var t=localStorage.getItem('vd-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 fill=%27%23000%27/%3E%3Crect x=%277%27 y=%277%27 width=%2718%27 height=%2718%27 fill=%27none%27 stroke=%27%23fafaf8%27/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&family=Inter+Tight:wght@400&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- /VIDESIGN:HEAD -->
+  <title>Videsign — design system</title>
+  <meta name="description" content="Videsign: design system on HTML + Tailwind CSS v4 + Lucide, based on techspirit.barcelona.">
+  <!-- VIDESIGN:CSS -->
+  <style type="text/tailwindcss">
+/* ==========================================================================
+   VIDESIGN — design system (Tailwind CSS v4, browser build)
+   Based on the design language of techspirit.barcelona
+   Source of truth: src/videsign.css → injected into every page by build.py
+   Rule: do not use clamp() or custom font sizes. Use the Tailwind scale with breakpoints.
+   ========================================================================== */
+
+/* ---------- 1. Tokens ---------------------------------------------------- */
+
+/* Theme-dependent tokens: point to CSS variables so light/dark can swap at runtime */
+@theme inline {
+  --color-bg: var(--bg);        /* page background (black in dark) */
+  --color-fg: var(--fg);        /* ink: text, borders, positive bands */
+  --color-tile: var(--tile);    /* surfaces: tiles, cards, capsules */
+  --color-rule: var(--rule);    /* hairline dividers (fg at 22%) */
+  --spacing-hang: var(--hang);  /* hanging margin: numbers/marks live here */
+  --spacing-pad: var(--pad);    /* page side padding */
+}
+
+/* Static tokens */
+@theme {
+  --color-ink: #000000;
+  --color-paper: #fafaf8;
+  --color-graphite: #1c1c1c;
+  --color-mist: #ececec;
+
+  /* Accent palette = track colours of the original (warm → cold) */
+  --color-flame: #fa6e1d;   /* AI-Native */
+  --color-amber: #ffa234;   /* Investment */
+  --color-sand: #ffcf82;    /* Robotics & Hardware */
+  --color-ice: #ceedff;     /* Gaming */
+  --color-sky: #9fd0ff;     /* Health */
+  --color-azure: #70adfb;   /* Creativity */
+
+  /* Two font families. Use the display font only for the large size. */
+  --font-display: "Inter Tight", "Favorit", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --tracking-display: -0.035em;
+  --tracking-mid: -0.03em;
+  --leading-display: 1.02;
+  --leading-mid: 1.05;
+  --leading-list: 1.2;
+
+  --container-page: 90rem;  /* 1440px */
+  --ease-expo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-blink: blink 1.6s ease-in-out infinite;
+  @keyframes blink { 50% { opacity: 0.2; } }
+}
+
+/* Runtime variables. Dark is the default theme. */
+:root, [data-theme="dark"] {
+  --bg: #000000; --fg: #fafaf8; --tile: #1c1c1c;
+  --rule: color-mix(in srgb, var(--fg) 22%, transparent);
+  --hang: 2.1rem; --pad: 1.25rem;
+}
+[data-theme="light"] { --bg: #fafaf8; --fg: #0b0b0b; --tile: #ececec; }
+@media (width >= 48rem) { :root { --hang: 3.2rem; --pad: 2.5rem; } }
+
+/* ---------- 2. Base ------------------------------------------------------ */
+@layer base {
+  html { @apply bg-bg text-fg font-sans antialiased scroll-smooth; }
+  body { @apply bg-bg text-sm leading-normal overflow-x-hidden; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { @apply outline-1 outline-fg outline-offset-4; }
+  ::selection { @apply bg-fg text-bg; }
+  html.t-anim, html.t-anim * { transition: background-color .6s ease, color .6s ease, border-color .6s ease !important; }
+  [data-lucide] { display: inline-block; }
+}
+
+@layer components {
+
+/* ---------- 3. Layout ---------------------------------------------------- */
+  .wrap { @apply mx-auto w-full max-w-page px-pad; }
+  .col  { @apply pl-hang; }                      /* one text edge for the whole page */
+  .hang { @apply absolute -left-hang top-0; }    /* thing that hangs left of the edge */
+  .grid-12 { @apply grid grid-cols-12 gap-x-3.5 md:gap-x-6; }
+  .section { @apply relative pt-24 md:pt-32 lg:pt-44; }
+  .section-sm { @apply relative pt-16 md:pt-24; }
+  .section-head { @apply flex flex-wrap items-end justify-between gap-x-6 gap-y-3 mb-7; }
+  .divider { @apply border-t border-rule; }
+  .divider-strong { @apply border-t border-fg; }
+
+/* ---------- 4. Typography: two sizes ------------------------------------ */
+  /* .display → defined as @utility below (so other classes can @apply it) */
+  /* .display-mid → defined as @utility below (so other classes can @apply it) */
+  .text { @apply font-sans text-sm leading-normal tracking-normal; }
+  .text-lead { @apply font-sans text-base lg:text-lg leading-normal; }
+  .label { @apply block font-sans text-sm leading-normal mb-2.5; }
+  .muted { @apply text-fg/55; }
+  .faint { @apply text-fg/45; }
+  /* .sup → defined as @utility below (so other classes can @apply it) */
+  .num { @apply tabular-nums; }
+  .measure { @apply max-w-[54ch]; }
+  .prose-stack { @apply flex flex-col gap-3; }
+
+/* ---------- 5. Links ----------------------------------------------------- */
+  .link { @apply border-b border-current pb-px transition-opacity duration-200 hover:opacity-70; }
+  .display .link, .link-big { @apply border-b-[0.04em] pb-[0.02em]; }
+  .link-grow { @apply bg-[linear-gradient(currentColor,currentColor)] bg-no-repeat bg-left-bottom bg-[length:0_1px] transition-[background-size] duration-500 ease-expo hover:bg-[length:100%_1px]; }
+  .link-icon { @apply inline-flex items-center gap-2.5 border-b border-current pb-0.5 transition-opacity hover:opacity-70; }
+  .link-icon svg { @apply size-4; }
+
+/* ---------- 6. Buttons --------------------------------------------------- */
+  /* The outlined box from "See the full agenda" / "Register": display face, square, inverts on hover */
+  .btn { @apply relative inline-flex items-center gap-[0.35em] font-display font-normal whitespace-nowrap leading-none tracking-mid
+                 text-2xl md:text-3xl lg:text-5xl px-[0.42em] pt-[0.2em] pb-[0.24em]
+                 border border-fg text-fg bg-transparent cursor-pointer select-none
+                 transition-colors duration-250 hover:bg-fg hover:text-bg; }
+  .btn svg { @apply size-[0.7em]; }
+  .btn-solid { @apply bg-fg text-bg hover:bg-bg hover:text-fg; }
+  .btn-sm { @apply text-lg md:text-xl lg:text-2xl; }
+  .btn-lg { @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl; }
+  .btn:disabled, .btn[aria-disabled="true"] { @apply opacity-35 pointer-events-none; }
+  .btn-round { @apply inline-flex items-center justify-center size-10 rounded-full bg-tile text-fg cursor-pointer transition-colors duration-300 hover:bg-fg hover:text-bg; }
+  .btn-round svg { @apply size-5; }
+  /* Floating CTA: appears after the hero, solid & big on phones */
+  .fab { @apply fixed z-30 right-pad bottom-4 md:bottom-9 opacity-0 pointer-events-none transition-opacity duration-500; }
+  .fab.is-on { @apply opacity-100 pointer-events-auto; }
+  .fab .btn { @apply bg-bg max-md:bg-fg max-md:text-bg max-md:text-4xl; }
+
+/* ---------- 7. Switch (capsule with sliding knob) ------------------------ */
+  .switch { @apply inline-flex flex-col items-end gap-3 bg-transparent border-0 p-0 text-fg cursor-pointer; }
+  .switch:focus-visible { @apply outline-none; }
+  .switch:focus-visible .switch-track { @apply ring-1 ring-fg/60; }
+  .switch-track { @apply relative flex gap-0.5 p-1 rounded-full bg-tile; }
+  .switch-opt { @apply relative z-10 flex items-center justify-center size-8.5 md:size-10 text-fg not-italic text-xs font-semibold tracking-wide transition-colors duration-350; }
+  .switch-opt svg { @apply size-5; }
+  .switch-knob { @apply absolute top-1 left-1 size-8.5 md:size-10 rounded-full bg-fg transition-transform duration-450 ease-expo translate-x-[calc(100%+2px)]; }
+  .switch[aria-checked="true"] .switch-knob { @apply translate-x-0; }
+  .switch[aria-checked="true"] .switch-opt:nth-child(2),
+  .switch[aria-checked="false"] .switch-opt:nth-child(3) { @apply text-bg; }
+
+/* ---------- 8. Chips, pills, meta --------------------------------------- */
+  .chip { @apply inline-flex items-center gap-1.75 whitespace-nowrap; }
+  .dot { @apply block size-2.25 shrink-0 rounded-full bg-fg; }
+  .pill { @apply inline-flex items-center gap-1.75 rounded-full border border-fg py-0.75 pl-2 pr-2.5 whitespace-nowrap leading-normal; }
+  .pill-solid { @apply bg-fg text-bg; }
+  .pill-live .dot { @apply size-1.75 animate-blink motion-reduce:animate-none; }
+  .meta { @apply flex flex-wrap items-center gap-x-4.5 gap-y-1.5 text-sm; }
+
+/* ---------- 9. Header & menu (derived: the original has no nav bar) ----- */
+  .header { @apply absolute inset-x-0 top-0 z-40; }
+  .header-bar { @apply mx-auto flex max-w-page items-center justify-between gap-6 px-pad pt-5 md:pt-8; }
+  .header-nav { @apply hidden md:flex items-center gap-7 text-sm; }
+  .header-actions { @apply flex items-center gap-3; }
+  .nav-link { @apply link-grow-like; }
+  .menu { @apply fixed inset-0 z-50 flex flex-col bg-bg px-pad pt-5 pb-8 invisible opacity-0 transition-[opacity,visibility] duration-400; }
+  .menu.is-on { @apply visible opacity-100; }
+  .menu-top { @apply flex items-center justify-between; }
+  .menu-list { @apply mt-auto flex flex-col; }
+  .menu-link { @apply display block border-t border-rule py-2 transition-opacity duration-300; }
+  .menu-list:hover .menu-link { @apply opacity-30; }
+  .menu-list .menu-link:hover { @apply opacity-100; }
+  .menu-foot { @apply mt-8 flex justify-between text-sm text-fg/55; }
+
+/* ---------- 10. Logo ----------------------------------------------------- */
+  .logo { @apply relative inline-flex flex-col border border-current px-1.5 pt-1 pb-1.5 font-display text-base md:text-lg leading-none uppercase tracking-tight; }
+  .logo::after { @apply content-[''] absolute -left-1.5 top-1.5 -bottom-1.5 w-px bg-current; }
+  .logo::before { @apply content-[''] absolute -left-1.5 -bottom-1.5 right-1.5 h-px bg-current; }
+
+/* ---------- 11. Hero ----------------------------------------------------- */
+  .hero { @apply relative flex min-h-svh items-center justify-center overflow-hidden px-pad pt-28 pb-80 md:pb-84; }
+  .hero-bg { @apply absolute inset-0 z-0 pointer-events-none; }   /* ← slot for the WebGL/three.js layer */
+  .horizon { @apply absolute inset-x-0 top-1/2 h-px bg-fg/80 shadow-[0_0_6px_1px_color-mix(in_srgb,var(--fg)_60%,transparent),0_0_28px_5px_color-mix(in_srgb,var(--fg)_25%,transparent)]; }
+  .hero-title { @apply display relative z-10 max-w-[14ch]; }
+  .lockup { @apply relative z-10 inline-grid grid-cols-[auto_auto] items-baseline gap-x-[0.24em] font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+  .lockup-a { @apply col-start-1 row-start-1; }
+  .lockup-b { @apply col-start-2 row-start-1; }
+  .lockup-c { @apply col-start-2 row-start-2; }
+  .hero-foot { @apply absolute inset-x-0 bottom-7 md:bottom-11 z-10 mx-auto max-w-page px-pad; }
+  .hero-info { @apply mt-5 flex flex-col text-sm; }
+  .hero-actions { @apply mt-6 flex flex-wrap gap-x-5.5 gap-y-3; }
+
+/* ---------- 12. Band (positive) & KPI ----------------------------------- */
+  .band { @apply bg-fg text-bg py-14 md:py-20; }
+  .band-row { @apply flex flex-col gap-10 md:flex-row md:items-center md:justify-between md:gap-[6vw]; }
+  .kpi { @apply relative grid grid-cols-2 lg:grid-cols-4 border border-current
+                 before:absolute before:-left-3 before:top-3 before:-bottom-3.25 before:w-px before:bg-current
+                 after:absolute after:-left-3 after:right-3 after:-bottom-3.25 after:h-px after:bg-current; }
+  .kpi-cell { @apply flex flex-col gap-1 border-current px-5 pt-5 pb-6 md:px-7 md:pt-6.5 md:pb-7.5; }
+  .kpi-cell:not(:first-child) { @apply border-l; }
+  .kpi-value { @apply display-mid tabular-nums; }
+  .kpi-label { @apply text-sm opacity-60; }
+
+/* ---------- 13. Peek (rotating preview link) ---------------------------- */
+  .peek { @apply block w-full md:w-72 lg:w-80 shrink-0 text-inherit; }
+  .peek-frame { @apply relative block aspect-4/3 overflow-hidden rounded-sm bg-current/10 [clip-path:inset(0_round_4px)] transition-[clip-path] duration-700 ease-expo; }
+  .peek:hover .peek-frame, .peek:focus-visible .peek-frame { @apply [clip-path:inset(3%_round_4px)]; }
+  .peek-img { @apply absolute inset-0 size-full object-cover opacity-0 scale-108 grayscale contrast-105 transition-[opacity,transform,filter] duration-[1400ms,6000ms,500ms]; }
+  .peek-img.is-on { @apply opacity-100 scale-100; }
+  .peek:hover .peek-img { @apply grayscale-0; }
+  .peek-caption { @apply mt-3 flex items-baseline justify-between gap-4 border-t border-current/20 pt-2.5 text-sm; }
+  .peek-title { @apply link-grow-like; }
+  .peek:hover .peek-title { @apply bg-[length:100%_1px]; }
+  .peek-count { @apply opacity-50 tabular-nums; }
+
+/* ---------- 14. THE LINEUP (core pattern for Cases & Services) ---------- */
+  /* Desktop: one paragraph of large text. Each item has a media pill, a name and a sub-label.
+     A " / " separates the items.
+     Hover or focus on one item: the other items dim to 28%. A card follows the pointer.
+     Phone: the paragraph becomes a list with top lines. The media is on the left. */
+  .lineup { @apply flex flex-col font-display font-normal text-3xl tracking-tight leading-[1.08]
+                   md:block md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl md:leading-list md:tracking-display md:max-w-[24ch]; }
+  .lineup-item { @apply grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-3.5 border-t border-rule py-2.5 cursor-default outline-none transition-opacity duration-300
+                        md:inline md:border-0 md:p-0; }
+  a.lineup-item { @apply cursor-pointer; }
+  .lineup-item:focus-visible .lineup-name { @apply underline decoration-1 underline-offset-[0.12em]; }
+  .lineup-item + .lineup-item::before, .lineup-more::before { @apply hidden md:inline content-['_/_'] opacity-25; }
+  .lineup-media { @apply row-span-2 flex gap-1 md:inline-flex md:gap-[0.08em] md:mr-[0.18em] md:align-[-0.06em]; }
+  .lineup-face { @apply inline-block w-16 h-20 rounded-full bg-tile bg-cover bg-center object-cover grayscale contrast-[1.12] brightness-[.86] transition-[filter] duration-500 ease-expo
+                        md:w-[1.12em] md:h-[0.74em]; }
+  .lineup-media.is-pair .lineup-face { @apply w-7.5 md:w-[1.12em]; }
+  .lineup-icon { @apply relative inline-block w-16 h-16 rounded-full bg-tile text-fg transition-colors duration-500
+                        md:w-[1.12em] md:h-[0.74em]; }
+  .lineup-icon svg { @apply absolute inset-0 m-auto size-7 md:size-[0.42em] stroke-[1.5]; }  /* out of flow → pill sits on the baseline like a glyph */
+  .lineup-num { @apply sup hidden md:inline; }
+  .lineup-name { @apply self-end md:self-auto; }
+  .lineup-sub { @apply self-start text-fg/45; }       /* colour it with text-flame / text-sky / … */
+  .lineup-more { @apply block border-t border-rule py-4 text-fg/45 transition-colors duration-300 hover:text-fg md:inline md:border-0 md:p-0; }
+  /* states */
+  .lineup-item:hover .lineup-face, .lineup-item.is-on .lineup-face { @apply grayscale-0 contrast-100 brightness-100; }
+  .lineup-item.is-on .lineup-icon { @apply bg-fg text-bg; }
+  .lineup.is-active .lineup-item, .lineup.is-active .lineup-more { @apply opacity-28; }
+  .lineup.is-active .lineup-item.is-on { @apply opacity-100; }
+  .lineup-note { @apply mt-7 text-sm opacity-45; }
+  /* the floating preview card */
+  .lineup-card { @apply fixed left-0 top-0 z-30 w-50 overflow-hidden rounded-2xl bg-tile text-fg opacity-0 pointer-events-none transition-opacity duration-200
+                        max-md:inset-x-4 max-md:top-auto max-md:bottom-24 max-md:w-auto max-md:grid max-md:grid-cols-[6rem_1fr] max-md:transform-none!; }
+  .lineup-card.is-on { @apply opacity-100; }
+  .lineup-card-img { @apply block w-full aspect-square object-cover bg-graphite max-md:h-full max-md:aspect-auto; }
+  .lineup-card-icon { @apply flex aspect-square items-center justify-center bg-fg text-bg max-md:aspect-auto; }
+  .lineup-card-icon svg { @apply size-10 stroke-[1.25]; }
+  .lineup-card-body { @apply flex flex-col gap-0.75 px-3.5 pt-3 pb-3.5 font-sans text-xs leading-snug tracking-normal; }
+  .lineup-card-body em { @apply not-italic opacity-55; }
+
+/* ---------- 15. Track list (accordion with hanging marks) --------------- */
+  .tracks { @apply relative list-none font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+  .track { @apply relative; }
+  .track-btn { @apply block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-inherit [font:inherit]; }
+  .track-btn:focus-visible { @apply outline-offset-6; }
+  .track-mark { @apply absolute -left-hang top-[0.16em] size-[0.62em] md:size-[0.68em] -ml-[0.06em] md:-ml-[0.24em] flex items-center justify-center rounded-full border border-current transition-colors duration-400; }
+  .track-mark svg { @apply size-[0.55em] stroke-[1.25]; }
+  .track-name { @apply inline-block transition-opacity duration-350; }
+  .track-body { @apply grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-450 ease-expo; }
+  .track-body > * { @apply min-h-0 max-w-[54ch] overflow-hidden font-sans text-sm leading-normal tracking-normal; }
+  .tracks.is-active .track-name { @apply opacity-30; }
+  .track.is-hot .track-name, .track.is-open .track-name { @apply opacity-100; }
+  .track.is-open .track-body { @apply grid-rows-[1fr] opacity-100; }
+  .track.is-open .track-body > * { @apply pt-3 pb-5.5; }
+  .track.is-open .track-mark { @apply bg-fg text-bg; }
+  .tracks-sm { @apply text-3xl md:text-4xl lg:text-5xl; }
+
+/* ---------- 16. Numbered list (hanging numbers) ------------------------- */
+  .numlist { @apply list-none; }
+  .numlist-item { @apply relative display; }
+  .numlist-n { @apply absolute -left-hang top-[0.42em] font-sans text-sm leading-none tracking-normal tabular-nums; }
+
+/* ---------- 17. Feature & sessions -------------------------------------- */
+  .feature { @apply grid items-center gap-y-7 border-t border-fg pt-5.5 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-x-6; }
+  .feature-body { @apply flex min-w-0 flex-col gap-6.5; }
+  .feature-title { @apply display text-balance; }
+  .feature-desc { @apply flex max-w-[52ch] flex-col gap-3 text-sm; }
+  .feature-media { @apply relative aspect-square w-3/5 max-w-75 max-lg:-order-1 lg:w-full lg:max-w-full rounded-2xl bg-tile overflow-hidden; }  /* slot for orb/WebGL */
+  .sessions { @apply mt-16 grid list-none gap-y-20 md:grid-cols-2 md:gap-x-15; }
+  .session { @apply flex min-w-0 flex-col gap-5.5 border-t border-fg pt-5.5; }
+  .session-title { @apply display-mid; }
+  .session-desc { @apply flex max-w-[46ch] flex-col gap-3 text-sm; }
+
+/* ---------- 18. People ---------------------------------------------------- */
+  .people { @apply grid max-w-md list-none grid-cols-4 gap-3.5 text-sm; }
+  .people-3 { @apply max-w-87 grid-cols-3; }
+  .person { @apply flex min-w-0 flex-col gap-2.5; }
+  .person-photo { @apply block aspect-4/5 w-full rounded-2xl bg-tile object-cover grayscale contrast-[1.12] brightness-[.86] transition-[filter] duration-500 ease-expo; }
+  .person:hover .person-photo { @apply grayscale-0 contrast-100 brightness-100; }
+  .person-name { @apply block; }
+  .person-org { @apply block text-fg/45; }
+  .person-role { @apply mt-0.5 block text-fg/55; }
+
+/* ---------- 19. Mosaic ---------------------------------------------------- */
+  .mosaic { @apply grid grid-flow-dense grid-cols-6 auto-rows-[24vw] gap-2.5 md:grid-cols-12 md:auto-rows-[9vw] md:gap-3.5 2xl:auto-rows-36; }
+  .tile { @apply relative flex items-center justify-center overflow-hidden rounded-2xl bg-tile text-xs text-fg/45; }
+  .tile img { @apply absolute inset-0 size-full object-cover transition-transform duration-1200 ease-expo; }
+  .tile:hover img { @apply scale-[1.025]; }
+  .tile-cap { @apply pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-1.5 flex-col gap-0.5 bg-linear-to-t from-black/60 to-transparent px-3 pt-9 pb-2.5 text-left text-xs leading-snug text-paper opacity-0 transition-[opacity,transform] duration-500 ease-expo
+                     md:px-4.5 md:pt-12 md:pb-4 md:text-sm; }
+  .tile-cap em { @apply not-italic opacity-70; }
+  .tile:hover .tile-cap, .tile.is-seen .tile-cap { @apply translate-y-0 opacity-100; }
+  .tile-6x3 { @apply col-span-6 row-span-2 md:row-span-3; }
+  .tile-6x2 { @apply col-span-6 row-span-2; }
+  .tile-4x3 { @apply col-span-3 row-span-2 md:col-span-4 md:row-span-3; }
+  .tile-4x2 { @apply col-span-3 row-span-2 md:col-span-4; }
+  .tile-3x3 { @apply col-span-3 row-span-2 md:row-span-3; }
+  .tile-3x2 { @apply col-span-3 row-span-2; }
+
+/* ---------- 20. Countdown ------------------------------------------------- */
+  .countdown { @apply display flex flex-wrap gap-x-[0.5em] tabular-nums; }
+  .countdown-unit { @apply whitespace-nowrap; }
+
+/* ---------- 21. Word reveal (manifesto) ---------------------------------- */
+  .reveal { @apply display max-w-[21ch] mb-[0.62em]; }
+  .reveal .word { @apply opacity-16 transition-opacity duration-350 ease-linear motion-reduce:opacity-100; }
+  .reveal .word.is-on { @apply opacity-100; }
+
+/* ---------- 22. Partners / logos ----------------------------------------- */
+  .tier { @apply border-t border-rule pt-3.5; }
+  .tier + .tier { @apply mt-12 md:mt-14; }
+  .tier .label { @apply mb-5 md:mb-7; }
+  .logos { @apply grid list-none grid-cols-3 items-center justify-items-start gap-x-4.5 gap-y-5 md:grid-cols-5 md:gap-x-8 md:gap-y-6.5 lg:grid-cols-7; }
+  .logos-lg { @apply grid-cols-2 md:grid-cols-4 max-w-250; }
+  .logo-mark { @apply font-display text-lg md:text-xl tracking-tight leading-none opacity-80 transition-opacity duration-250 hover:opacity-100; }
+  .logos-lg .logo-mark { @apply text-2xl md:text-3xl opacity-100; }
+
+/* ---------- 23. Forms (derived: the original has none) ------------------ */
+  .form { @apply grid gap-x-6 gap-y-7 md:grid-cols-2; }
+  .field { @apply flex flex-col gap-2; }
+  .field-full { @apply md:col-span-2; }
+  .field-label { @apply text-sm text-fg/55; }
+  .field-hint { @apply text-xs text-fg/45; }
+  .field-error { @apply text-xs text-flame; }
+  /* .input → defined as @utility below (so other classes can @apply it) */
+  .input[aria-invalid="true"] { @apply border-flame; }
+  .input-big { @apply font-display text-3xl md:text-5xl tracking-mid; }
+  .textarea { @apply input min-h-32 resize-y; }
+  .select-wrap { @apply relative; }
+  .select { @apply input cursor-pointer appearance-none pr-8; }
+  .select-wrap svg { @apply pointer-events-none absolute right-0 top-1/2 size-4 -translate-y-1/2; }
+  .select option { @apply bg-bg text-fg; }
+  .check { @apply inline-flex cursor-pointer items-start gap-3 text-sm; }
+  .check input { @apply mt-0.5 size-4 shrink-0 cursor-pointer accent-fg; }
+  .choice { @apply inline-flex cursor-pointer select-none items-center gap-1.75 rounded-full border border-rule py-1.5 px-3.5 text-sm transition-colors hover:border-fg has-checked:border-fg has-checked:bg-fg has-checked:text-bg; }
+  .choice input { @apply sr-only; }
+
+/* ---------- 24. Drawer (side sheet / bottom sheet) ---------------------- */
+  .scrim { @apply fixed inset-0 z-60 bg-black/55 opacity-0 pointer-events-none transition-opacity duration-300; }
+  .scrim.is-on { @apply opacity-100 pointer-events-auto; }
+  .drawer { @apply fixed z-61 overflow-y-auto overscroll-contain bg-bg transition-transform duration-450 ease-expo
+                   inset-x-0 bottom-0 max-h-[92svh] translate-y-full rounded-t-2xl border-t border-rule px-pad pt-3 pb-12
+                   md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-160 md:translate-y-0 md:translate-x-full md:rounded-none md:border-t-0 md:border-l md:px-11 md:pt-8.5 md:pb-15; }
+  .drawer.is-on { @apply translate-y-0 md:translate-x-0; }
+  .drawer-grab { @apply mx-auto mb-4 block h-1 w-10 rounded-full bg-rule md:hidden; }
+  .drawer-close { @apply sticky top-0 z-10 float-right cursor-pointer bg-bg pb-2 pl-3.5 pt-1 text-sm opacity-60 transition-opacity hover:opacity-100; }
+
+/* ---------- 25. Footer / info grid -------------------------------------- */
+  .footer { @apply pt-24 pb-36 md:pt-32 md:pb-15; }
+  .info-grid { @apply grid gap-y-5.5 border-t border-rule pt-5 text-sm md:grid-cols-4 md:gap-x-6; }
+  .info-key { @apply block text-fg/50; }
+  .info-grid a { @apply break-words; }
+
+/* ---------- 26. Docs-only helpers (used by index.html) ------------------ */
+  .doc-nav { @apply hidden lg:block sticky top-0 h-svh w-56 shrink-0 overflow-y-auto border-r border-rule py-8 pl-pad pr-4 text-sm; }
+  .doc-nav a:not(.logo) { @apply block py-1 text-fg/55 transition-colors hover:text-fg; }
+  .doc-nav .doc-nav-group { @apply mt-6 mb-1 block text-xs uppercase tracking-widest text-fg/35; }
+  .doc-section { @apply scroll-mt-6 border-t border-rule px-pad pt-10 pb-20 md:pt-12; }
+  .doc-h { @apply display-mid mb-2; }
+  .doc-lead { @apply mb-8 max-w-[70ch] text-sm text-fg/60; }
+  .specimen { @apply mb-10 overflow-hidden rounded-2xl border border-rule; }
+  .specimen-head { @apply flex flex-wrap items-center justify-between gap-2 border-b border-rule px-4 py-2.5 text-xs text-fg/60; }
+  .specimen-demo { @apply relative p-5 md:p-8; }
+  .specimen-code { @apply relative border-t border-rule bg-tile/50; }
+  .specimen-code pre { @apply max-h-80 overflow-auto p-4 font-mono text-xs leading-relaxed text-fg/80; }
+  .copy { @apply absolute right-2 top-2 z-10 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-bg px-2.5 py-1 text-xs text-fg/70 transition-colors hover:text-fg; }
+  .copy svg { @apply size-3.5; }
+  .cls { @apply rounded bg-tile px-1.5 py-0.5 font-mono text-xs text-fg; }
+  .swatch { @apply flex flex-col gap-2 text-xs; }
+  .swatch-chip { @apply h-20 rounded-xl border border-rule; }
+}
+
+/* Primitives defined as @utility so components can @apply them.
+   They still work as plain classes in HTML: class="display", class="sup", class="input". */
+@utility display { @apply font-display font-normal text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl leading-display tracking-display; }
+@utility display-mid { @apply font-display font-normal text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-mid tracking-mid text-balance; }
+@utility sup { @apply relative top-[0.32em] ml-[0.28em] align-top font-sans text-sm leading-none tracking-normal whitespace-nowrap; }
+@utility input { @apply w-full rounded-none border-0 border-b border-rule bg-transparent py-3 font-sans text-base text-fg outline-none transition-colors duration-250
+                  placeholder:text-fg/30 hover:border-fg/50 focus:border-fg focus-visible:outline-none md:text-lg; }
+@utility link-grow-like {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px;
+  transition: background-size .5s var(--ease-expo);
+  &:hover, &:focus-visible { background-size: 100% 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
+  </style>
+  <!-- /VIDESIGN:CSS -->
+</head>
+<body>
+<!-- generated by tools/docs.py — edit there, then run: python3 tools/docs.py && python3 build.py -->
+<div class="flex">
+  <aside class="doc-nav" aria-label="Sections">
+    <a class="logo !mb-2 !text-fg" href="#top"><span>Videsign</span><span>Design</span><span>System</span></a>
+    <span class="doc-nav-group">Foundations</span><a href="#overview">Overview</a><a href="#tokens">Tokens</a><a href="#type">Typography</a><a href="#layout">Grid and layout</a><span class="doc-nav-group">Components</span><a href="#links">Links</a><a href="#buttons">Buttons</a><a href="#switch">Switch</a><a href="#chips">Chips, pills, meta</a><span class="doc-nav-group">Sections</span><a href="#header">Header and menu</a><a href="#hero">Hero</a><a href="#band">Band, KPI, peek</a><span class="doc-nav-group">Lineup</span><a href="#lineup">Lineup</a><span class="doc-nav-group">Components</span><a href="#tracks">Tracks (accordion)</a><a href="#numlist">Numbered list</a><a href="#feature">Feature, cards, people</a><a href="#mosaic">Mosaic</a><a href="#countdown">Countdown</a><a href="#reveal">Word reveal</a><a href="#drawer">Drawer</a><span class="doc-nav-group">Sections</span><a href="#partners">Partners and logos</a><a href="#forms">Forms</a><a href="#footer">Footer</a>
+    <span class="doc-nav-group">More</span><a href="example.html">Example landing →</a>
+  </aside>
+  <main class="min-w-0 flex-1" id="top">
+    <header class="flex items-center justify-between gap-4 px-pad pt-6 pb-4">
+      <span class="label !mb-0 muted">v1.0 · Tailwind v4 · Lucide</span>
+      <div class="header-actions">
+        <a class="nav-link hidden text-sm sm:inline" href="example.html">Example</a>
+        <button class="switch" type="button" role="switch" aria-checked="false" data-switch="theme" aria-label="Light theme">
+          <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span><span class="switch-opt"><i data-lucide="sun"></i></span><span class="switch-opt"><i data-lucide="moon"></i></span></span>
+        </button>
+        <button class="btn-round lg:hidden" type="button" data-menu="menu" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      </div>
+    </header>
+    <div class="px-pad pt-16 pb-20 md:pt-28">
+      <div class="col">
+        <span class="label">Design system based on techspirit.barcelona</span>
+        <h1 class="display max-w-[14ch]">Two sizes. One edge. Light by dimming.</h1>
+      </div>
+    </div>
+
+    <section class="doc-section" id="overview">
+      <h2 class="doc-h">Overview</h2>
+      <p class="doc-lead">This design system uses HTML, Tailwind CSS v4 (CDN) and Lucide icons. Its design language comes from techspirit.barcelona. Each component has a short semantic class. All classes use <code class="cls">@apply</code> in one <code class="cls">&lt;style type="text/tailwindcss"&gt;</code> block. The system does not use clamp() or custom font sizes. It uses only the Tailwind scale with breakpoints.</p>
+
+      <ol class="numlist col max-w-5xl">
+        <li class="numlist-item mb-8"><span class="numlist-n">01</span>Two sizes.<span class="text block mt-3 max-w-[60ch] text-fg/60">The display size is large: Inter Tight, tracking −0.035em, line height 1.02. The text size is small: Geist, 14px. Use the mid size only for card titles. Make hierarchy with size and space. Do not use bold weights for hierarchy.</span></li>
+        <li class="numlist-item mb-8"><span class="numlist-n">02</span>One text edge.<span class="text block mt-3 max-w-[60ch] text-fg/60">All text starts on one vertical line (<code class="cls">.col</code>). Numbers, icons and marks hang to the left of this line, in the <code class="cls">hang</code> margin. They do not move the text.</span></li>
+        <li class="numlist-item mb-8"><span class="numlist-n">03</span>Mono + six signals.<span class="text block mt-3 max-w-[60ch] text-fg/60">The base is black and white. Six accent colors go from orange to blue. Use an accent only to show meaning: a category, a company or a track.</span></li>
+        <li class="numlist-item mb-8"><span class="numlist-n">04</span>Focus by dimming.<span class="text block mt-3 max-w-[60ch] text-fg/60">When you point at one item, the other items dim to 28–30%. Photos are black and white until you point at them. Buttons and bands invert the colors.</span></li>
+        <li class="numlist-item"><span class="numlist-n">05</span>Hairlines, not boxes.<span class="text block mt-3 max-w-[60ch] text-fg/60">A 1px line above each section and card separates them. Do not use shadows or card fills. Use round corners only on photos, pills and capsules.</span></li>
+      </ol>
+      <p class="col mt-12 flex flex-wrap gap-4"><a class="btn btn-sm" href="example.html"><span>Example landing</span><i data-lucide="arrow-up-right"></i></a><a class="btn btn-sm" href="https://github.com/markxxv/videsign"><span>GitHub</span><i data-lucide="arrow-up-right"></i></a></p>
+    </section>
+    <section class="doc-section" id="tokens">
+      <h2 class="doc-h">Tokens</h2>
+      <p class="doc-lead">The <code class="cls">@theme</code> block declares the tokens. The theme colors (bg, fg, tile, rule) are in <code class="cls">@theme inline</code>. They point to CSS variables. Thus one <code class="cls">data-theme</code> attribute on &lt;html&gt; changes the theme. Opacity modifiers such as <code class="cls">text-fg/45</code> and <code class="cls">border-fg/20</code> also work.</p>
+
+      <h3 class="label mt-2">Colors · base (change with the theme)</h3>
+      <div class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4"><div class="swatch"><div class="swatch-chip bg-bg"></div><span><code class="cls">bg</code></span><span class="faint">var(--bg) · #000 / #fafaf8</span></div><div class="swatch"><div class="swatch-chip bg-fg"></div><span><code class="cls">fg</code></span><span class="faint">var(--fg) · #fafaf8 / #0b0b0b</span></div><div class="swatch"><div class="swatch-chip bg-tile"></div><span><code class="cls">tile</code></span><span class="faint">var(--tile) · #1c1c1c / #ececec</span></div><div class="swatch"><div class="swatch-chip bg-rule"></div><span><code class="cls">rule</code></span><span class="faint">fg · 22%</span></div><div class="swatch"><div class="swatch-chip bg-ink"></div><span><code class="cls">ink</code></span><span class="faint">#000000</span></div><div class="swatch"><div class="swatch-chip bg-paper"></div><span><code class="cls">paper</code></span><span class="faint">#fafaf8</span></div><div class="swatch"><div class="swatch-chip bg-graphite"></div><span><code class="cls">graphite</code></span><span class="faint">#1c1c1c</span></div><div class="swatch"><div class="swatch-chip bg-mist"></div><span><code class="cls">mist</code></span><span class="faint">#ececec</span></div></div>
+      <h3 class="label">Accents · scale from warm to cold</h3>
+      <div class="mb-12 grid grid-cols-2 gap-4 md:grid-cols-6"><div class="swatch"><div class="swatch-chip bg-flame"></div><span><code class="cls">flame</code></span><span class="faint">#fa6e1d · AI</span></div><div class="swatch"><div class="swatch-chip bg-amber"></div><span><code class="cls">amber</code></span><span class="faint">#ffa234 · Investment</span></div><div class="swatch"><div class="swatch-chip bg-sand"></div><span><code class="cls">sand</code></span><span class="faint">#ffcf82 · Robotics</span></div><div class="swatch"><div class="swatch-chip bg-ice"></div><span><code class="cls">ice</code></span><span class="faint">#ceedff · Gaming</span></div><div class="swatch"><div class="swatch-chip bg-sky"></div><span><code class="cls">sky</code></span><span class="faint">#9fd0ff · Health</span></div><div class="swatch"><div class="swatch-chip bg-azure"></div><span><code class="cls">azure</code></span><span class="faint">#70adfb · Creativity</span></div></div>
+      <h3 class="label">Type scale (Tailwind classes only)</h3>
+      <div class="mb-12 overflow-x-auto"><table class="w-full min-w-[640px] text-left text-sm">
+        <thead class="text-fg/50"><tr class="border-b border-rule"><th class="py-2 pr-4 font-normal">Role</th><th class="py-2 pr-4 font-normal">Class</th><th class="py-2 pr-4 font-normal">base</th><th class="py-2 pr-4 font-normal">sm</th><th class="py-2 pr-4 font-normal">md</th><th class="py-2 pr-4 font-normal">lg</th><th class="py-2 font-normal">2xl</th></tr></thead>
+        <tbody>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Display (big)</td><td class="pr-4"><code class="cls">.display</code></td><td>text-4xl · 36</td><td>text-5xl · 48</td><td>text-6xl · 60</td><td>text-7xl · 72</td><td>text-8xl · 96</td></tr>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Lineup</td><td class="pr-4"><code class="cls">.lineup</code></td><td>text-3xl · 30</td><td>—</td><td>text-5xl · 48</td><td>text-6xl / xl:7xl</td><td>text-8xl</td></tr>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Mid</td><td class="pr-4"><code class="cls">.display-mid</code></td><td>text-2xl · 24</td><td>—</td><td>text-3xl · 30</td><td>text-4xl / xl:5xl</td><td>—</td></tr>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Button</td><td class="pr-4"><code class="cls">.btn</code></td><td>text-2xl</td><td>—</td><td>text-3xl</td><td>text-5xl</td><td>—</td></tr>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Lead</td><td class="pr-4"><code class="cls">.text-lead</code></td><td>text-base</td><td>—</td><td>—</td><td>text-lg</td><td>—</td></tr>
+          <tr class="border-b border-rule"><td class="py-2 pr-4">Text / label</td><td class="pr-4"><code class="cls">.text .label</code></td><td colspan="5">text-sm · 14 (all small text on the site has one size)</td></tr>
+          <tr><td class="py-2 pr-4">Caption</td><td class="pr-4"><code class="cls">.lineup-card-body</code></td><td colspan="5">text-xs · 12</td></tr>
+        </tbody></table></div>
+      <h3 class="label">Space, radius, motion</h3>
+      <div class="grid gap-4 text-sm md:grid-cols-3">
+        <div class="border-t border-rule pt-3"><code class="cls">px-pad</code> 20 → 40px<br><code class="cls">pl-hang</code> 2.1rem → 3.2rem<br><code class="cls">max-w-page</code> 1440px<br><code class="cls">gap-x-3.5 md:gap-x-6</code> columns</div>
+        <div class="border-t border-rule pt-3"><code class="cls">rounded-sm</code> peek (4px)<br><code class="cls">rounded-2xl</code> photos, tiles, cards (16px)<br><code class="cls">rounded-full</code> pills, faces, capsules<br>buttons and KPI: no radius</div>
+        <div class="border-t border-rule pt-3"><code class="cls">ease-expo</code> cubic-bezier(.22,1,.36,1)<br>200ms opacity · 250ms invert · 300–500ms dim/filter · 450ms unfold/slide<br><code class="cls">animate-blink</code> 1.6s (live)</div>
+      </div>
+    </section>
+    <section class="doc-section" id="type">
+      <h2 class="doc-h">Typography</h2>
+      <p class="doc-lead">The system has two fonts and two sizes. Use Display (Inter Tight, in place of Favorit) only for the large size. Use Geist for all small text. <code class="cls">.sup</code> is a small note. It hangs from the cap line of a large word. Use it for track numbers and timer units.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Display</span><span class="flex flex-wrap gap-1.5"><code class="cls">display</code></span></div>
+        <div class="specimen-demo " data-snippet="s1">
+          <p class="display">This may be the last frontier.</p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s1"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s1"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Display mid</span><span class="flex flex-wrap gap-1.5"><code class="cls">display-mid</code></span></div>
+        <div class="specimen-demo " data-snippet="s2">
+          <h3 class="display-mid max-w-[20ch]">Rebuilding Healthcare’s Front Door with AI</h3>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s2"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s2"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Label + text + muted</span><span class="flex flex-wrap gap-1.5"><code class="cls">label</code> <code class="cls">text</code> <code class="cls">muted</code> <code class="cls">faint</code></span></div>
+        <div class="specimen-demo " data-snippet="s3">
+          <span class="label">The Lineup Is Taking Shape</span>
+          <p class="text max-w-[52ch]">Barcelona’s annual gathering exploring the future through the lens of technology.</p>
+          <p class="text muted">December 2–3, 2026 · Llotja de Mar</p>
+          <p class="text faint">7 days to go</p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s3"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s3"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Superscript annotation</span><span class="flex flex-wrap gap-1.5"><code class="cls">sup</code> <code class="cls">num</code></span></div>
+        <div class="specimen-demo " data-snippet="s4">
+          <p class="display">AI-Native<span class="sup">1</span></p>
+          <p class="display num">06<span class="sup">days</span> 09<span class="sup">hours</span></p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s4"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s4"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Lead</span><span class="flex flex-wrap gap-1.5"><code class="cls">text-lead</code> <code class="cls">measure</code></span></div>
+        <div class="specimen-demo " data-snippet="s5">
+          <p class="text-lead measure">Two days exploring the future of the world through the lens of technology.</p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s5"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s5"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="layout">
+      <h2 class="doc-h">Grid and layout</h2>
+      <p class="doc-lead"><code class="cls">.wrap</code> is a 1440px container with 20/40px side space. <code class="cls">.col</code> is the single text edge (hang indent). <code class="cls">.hang</code> puts an item in the margin to the left of the edge. <code class="cls">.grid-12</code> is a 12-column grid. <code class="cls">.section</code> sets the vertical space between sections.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>wrap · col · hang</span><span class="flex flex-wrap gap-1.5"><code class="cls">wrap</code> <code class="cls">col</code> <code class="cls">hang</code> <code class="cls">section-head</code> <code class="cls">divider</code></span></div>
+        <div class="specimen-demo " data-snippet="s6">
+          <div class="wrap !px-0">
+            <div class="col relative border-l border-dashed border-flame/60">
+              <span class="hang text-flame">01</span>
+              <div class="section-head"><span class="label !mb-0">Section label</span><a class="link" href="#">See all</a></div>
+              <p class="display-mid divider pt-4">Text edge starts here; numbers hang in the margin.</p>
+            </div>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s6"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s6"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>12-column grid</span><span class="flex flex-wrap gap-1.5"><code class="cls">grid-12</code></span></div>
+        <div class="specimen-demo " data-snippet="s7">
+          <div class="grid-12">
+            <div class="col-span-12 md:col-span-7 rounded-2xl bg-tile p-4">7</div>
+            <div class="col-span-12 md:col-span-5 rounded-2xl bg-tile p-4">5</div>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s7"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s7"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="links">
+      <h2 class="doc-h">Links</h2>
+      <p class="doc-lead">A link has a 1px bottom border. In display text, the border is 0.04em. On hover, the opacity goes to 70%. On <code class="cls">.link-grow</code> and <code class="cls">.nav-link</code>, the line grows from left to right.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Links</span><span class="flex flex-wrap gap-1.5"><code class="cls">link</code> <code class="cls">link-icon</code> <code class="cls">link-grow</code> <code class="cls">nav-link</code></span></div>
+        <div class="specimen-demo " data-snippet="s8">
+          <p class="flex flex-wrap gap-6"><a class="link" href="#">Register now</a><a class="link-grow" href="#">Relive past editions</a><a class="nav-link" href="#">Cases</a><a class="link-icon" href="#">Read the manifesto <i data-lucide="arrow-right"></i></a></p>
+          <p class="display mt-6"><a class="link" href="#">Register now</a></p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s8"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s8"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="buttons">
+      <h2 class="doc-h">Buttons</h2>
+      <p class="doc-lead">A button is a rectangle with a 1px border and the display font. It has no round corners. On hover, the colors invert (fg and bg) in 250ms. Buttons also work on light backgrounds and bands. They get their colors from currentColor and the tokens.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Outline / solid</span><span class="flex flex-wrap gap-1.5"><code class="cls">btn</code> <code class="cls">btn-solid</code></span></div>
+        <div class="specimen-demo " data-snippet="s9">
+          <div class="flex flex-wrap items-center gap-4">
+            <a class="btn" href="#"><span>See the full agenda</span><i data-lucide="arrow-right"></i></a>
+            <a class="btn btn-solid" href="#">Register</a>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s9"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s9"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Sizes</span><span class="flex flex-wrap gap-1.5"><code class="cls">btn-sm</code> <code class="cls">btn</code> <code class="cls">btn-lg</code></span></div>
+        <div class="specimen-demo " data-snippet="s10">
+          <div class="flex flex-wrap items-end gap-4">
+            <a class="btn btn-sm" href="#">Small</a>
+            <a class="btn" href="#">Default</a>
+            <a class="btn btn-lg" href="#">Large</a>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s10"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s10"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>States & round</span><span class="flex flex-wrap gap-1.5"><code class="cls">btn[disabled]</code> <code class="cls">btn-round</code></span></div>
+        <div class="specimen-demo " data-snippet="s11">
+          <div class="flex flex-wrap items-center gap-4">
+            <button class="btn" type="button" disabled>Sold out</button>
+            <button class="btn-round" type="button" aria-label="Menu"><i data-lucide="menu"></i></button>
+            <button class="btn-round" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+            <button class="btn-round" type="button" aria-label="Next"><i data-lucide="arrow-right"></i></button>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s11"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s11"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>On positive band</span><span class="flex flex-wrap gap-1.5"><code class="cls">band</code> <code class="cls">btn</code></span></div>
+        <div class="specimen-demo !p-0" data-snippet="s12">
+          <div class="band px-6"><a class="btn" href="#"><span>Full agenda</span><i data-lucide="arrow-right"></i></a></div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s12"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s12"></pre></div>
+      </div>      <p class="text muted -mt-4 mb-10"><code class="cls">.fab</code> is the floating call to action: <code class="cls">&lt;a class="fab" href="#"&gt;&lt;span class="btn"&gt;Register&lt;/span&gt;&lt;/a&gt;</code>. It shows after the first screen (the script adds <code class="cls">.is-on</code>). On phones, it is filled and large. You can see it at the bottom right of this page.</p>
+    </section>
+    <section class="doc-section" id="switch">
+      <h2 class="doc-h">Switch</h2>
+      <p class="doc-lead">The switch is a capsule with a sliding knob: <code class="cls">.switch</code> (button role="switch") contains <code class="cls">.switch-track</code>, <code class="cls">.switch-knob</code> and two <code class="cls">.switch-opt</code> items. <code class="cls">aria-checked</code> holds the state. With <code class="cls">data-switch="theme"</code>, the switch changes the light/dark theme. The page keeps this choice.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Theme & language</span><span class="flex flex-wrap gap-1.5"><code class="cls">switch</code> <code class="cls">switch-track</code> <code class="cls">switch-knob</code> <code class="cls">switch-opt</code></span></div>
+        <div class="specimen-demo " data-snippet="s13">
+          <div class="flex flex-wrap items-center gap-8">
+            <button class="switch" type="button" role="switch" aria-checked="false" data-switch="theme" aria-label="Light theme">
+              <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span><span class="switch-opt"><i data-lucide="sun"></i></span><span class="switch-opt"><i data-lucide="moon"></i></span></span>
+            </button>
+            <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Language">
+              <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span><span class="switch-opt">RU</span><span class="switch-opt">EN</span></span>
+            </button>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s13"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s13"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="chips">
+      <h2 class="doc-h">Chips, pills, meta</h2>
+      <p class="doc-lead"><code class="cls">.chip</code> with <code class="cls">.dot</code> shows a category with a color dot. Set the color with a utility such as bg-flame. <code class="cls">.pill</code> is an outlined pill. <code class="cls">.pill-live</code> adds a blinking dot. <code class="cls">.meta</code> is a row for date, category and status.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Meta row</span><span class="flex flex-wrap gap-1.5"><code class="cls">meta</code> <code class="cls">chip</code> <code class="cls">dot</code> <code class="cls">pill</code> <code class="cls">pill-live</code> <code class="cls">pill-solid</code></span></div>
+        <div class="specimen-demo " data-snippet="s14">
+          <p class="meta"><span>02/12 · 15:30</span><span class="chip"><i class="dot bg-flame"></i>AI-Native</span><span class="pill pill-live"><i class="dot"></i>Live experiment</span><span class="muted">Keynote</span></p>
+          <p class="meta mt-4"><span class="chip"><i class="dot bg-flame"></i>AI</span><span class="chip"><i class="dot bg-amber"></i>Investment</span><span class="chip"><i class="dot bg-sand"></i>Robotics</span><span class="chip"><i class="dot bg-ice"></i>Gaming</span><span class="chip"><i class="dot bg-sky"></i>Health</span><span class="chip"><i class="dot bg-azure"></i>Creativity</span><span class="pill pill-solid">New</span></p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s14"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s14"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="header">
+      <h2 class="doc-h">Header and menu</h2>
+      <p class="doc-lead">The original site has no navigation bar. Its logo is in the hero, and its switches are in the corners. This header uses the same rules: a framed logo, small links with a growing line and the theme capsule. On phones, a round button opens a full-screen menu. When you point at one menu link, the other links dim.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Header</span><span class="flex flex-wrap gap-1.5"><code class="cls">header</code> <code class="cls">header-bar</code> <code class="cls">header-nav</code> <code class="cls">header-actions</code> <code class="cls">logo</code> <code class="cls">nav-link</code> <code class="cls">btn-round</code></span></div>
+        <div class="specimen-demo !p-3" data-snippet="s15">
+          <div class="relative h-28 overflow-hidden rounded-2xl border border-rule">
+            <header class="header">
+              <div class="header-bar">
+                <a class="logo" href="#"><span>Videsign</span><span>Studio</span><span>2026</span></a>
+                <nav class="header-nav"><a class="nav-link" href="#">Services</a><a class="nav-link" href="#">Cases</a><a class="nav-link" href="#">Contact</a></nav>
+                <div class="header-actions">
+                  <button class="btn-round md:hidden" type="button" data-menu="menu" aria-label="Open menu"><i data-lucide="menu"></i></button>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s15"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s15"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Mobile menu (open it)</span><span class="flex flex-wrap gap-1.5"><code class="cls">menu</code> <code class="cls">menu-top</code> <code class="cls">menu-list</code> <code class="cls">menu-link</code> <code class="cls">menu-foot</code></span></div>
+        <div class="specimen-demo " data-snippet="s16">
+          <button class="btn btn-sm" type="button" data-menu="menu"><span>Open menu</span><i data-lucide="menu"></i></button>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s16"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s16"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Logo lockup</span><span class="flex flex-wrap gap-1.5"><code class="cls">logo</code></span></div>
+        <div class="specimen-demo " data-snippet="s17">
+          <span class="logo"><span>Tech Spirit</span><span>Barcelona</span><span>2026</span></span>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s17"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s17"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="hero">
+      <h2 class="doc-h">Hero</h2>
+      <p class="doc-lead">The title is at the center of the first screen. The hero footer (description and links) is at the bottom. It uses the same <code class="cls">.col</code> edge as all text below. <code class="cls">.hero-bg</code> is an empty slot for the WebGL/three.js layer. Now it contains only the CSS line <code class="cls">.horizon</code>. <code class="cls">.lockup</code> is a grid that puts the second and third words in one column.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Hero</span><span class="flex flex-wrap gap-1.5"><code class="cls">hero</code> <code class="cls">hero-bg</code> <code class="cls">horizon</code> <code class="cls">lockup</code> <code class="cls">lockup-a</code> <code class="cls">lockup-b</code> <code class="cls">lockup-c</code> <code class="cls">hero-foot</code> <code class="cls">hero-info</code> <code class="cls">hero-actions</code></span></div>
+        <div class="specimen-demo !p-0" data-snippet="s18">
+          <section class="hero !min-h-160 !pb-64 rounded-2xl border border-rule">
+            <div class="hero-bg"><span class="horizon"></span></div>
+            <h1 class="lockup"><span class="lockup-a">The</span> <span class="lockup-b">last</span> <span class="lockup-c">frontier</span></h1>
+            <div class="hero-foot"><div class="col">
+              <span class="logo"><span>Tech Spirit</span><span>Barcelona</span><span>2026</span></span>
+              <p class="hero-info"><span>Barcelona’s annual gathering exploring the future.</span><span>December 2–3, 2026 · Llotja de Mar</span></p>
+              <p class="hero-actions"><a class="link" href="#">Register now</a><a class="link" href="#">See the agenda</a></p>
+            </div></div>
+          </section>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s18"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s18"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="band">
+      <h2 class="doc-h">Band, KPI, peek</h2>
+      <p class="doc-lead"><code class="cls">.band</code> is a full-width band in positive: it inverts the page (fg background, bg text). Put the key sentence in it as display text. <code class="cls">.peek</code> rotates photos. On hover, the photo gets its color, the frame shrinks and the caption line grows. <code class="cls">.kpi</code> is a bordered grid with an offset shadow of two lines.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Band + peek</span><span class="flex flex-wrap gap-1.5"><code class="cls">band</code> <code class="cls">band-row</code> <code class="cls">peek</code> <code class="cls">peek-frame</code> <code class="cls">peek-img</code> <code class="cls">peek-caption</code> <code class="cls">peek-title</code> <code class="cls">peek-count</code></span></div>
+        <div class="specimen-demo !p-0" data-snippet="s19">
+          <section class="band">
+            <div class="wrap band-row">
+              <div class="col"><p class="display max-w-[22ch]"><span data-count="2">2</span> days. <span data-count="100" data-suffix="+">100+</span> speakers.</p></div>
+              <a class="peek" href="#">
+                <span class="peek-frame"><img class="peek-img is-on" alt="" src="https://picsum.photos/seed/vd-b1/800/600"><img class="peek-img" alt="" src="https://picsum.photos/seed/vd-b2/800/600"></span>
+                <span class="peek-caption"><span class="peek-title">Relive past editions</span><span class="peek-count"><span data-peek-n>01</span> / 02</span></span>
+              </a>
+            </div>
+          </section>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s19"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s19"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>KPI</span><span class="flex flex-wrap gap-1.5"><code class="cls">kpi</code> <code class="cls">kpi-cell</code> <code class="cls">kpi-value</code> <code class="cls">kpi-label</code></span></div>
+        <div class="specimen-demo !pb-12" data-snippet="s20">
+          <div class="col"><div class="kpi">
+            <p class="kpi-cell"><span class="kpi-value">2</span><span class="kpi-label">days</span></p>
+            <p class="kpi-cell"><span class="kpi-value">100+</span><span class="kpi-label">speakers</span></p>
+            <p class="kpi-cell"><span class="kpi-value">4,000+</span><span class="kpi-label">attendees</span></p>
+            <p class="kpi-cell"><span class="kpi-value">6</span><span class="kpi-label">tracks</span></p>
+          </div></div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s20"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s20"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="lineup">
+      <h2 class="doc-h">Lineup — «The Lineup Is Taking Shape»</h2>
+      <p class="doc-lead">This is the main pattern for <b>cases and services</b>. On desktop, it is one paragraph of large display text. Each item has a media pill, a name and a sub-label. A « / » separates the items. The media (face, thumbnail or icon) sits in the line like a letter. It is 0.74em high and 1.12em wide, fully round, and black and white. An accent color shows the sub-label (company or category). <b>On hover or focus</b>, the other items dim to 28%. The photo gets its color. A preview card (200px, rounded-2xl, tile) moves with the pointer. <b>On phones</b>, the paragraph becomes a list. Each row has a top line, 64×80 media on the left, and the name and sub-label on two lines. A tap shows the card at the bottom of the screen. A second tap on a link opens it. The card gets its data from <code class="cls">data-img | data-icon</code>, <code class="cls">data-title</code>, <code class="cls">data-sub</code>, <code class="cls">data-text</code> and <code class="cls">data-meta</code>. Put an empty <code class="cls">.lineup-card</code> next to the list.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>People (original)</span><span class="flex flex-wrap gap-1.5"><code class="cls">lineup</code> <code class="cls">lineup-item</code> <code class="cls">lineup-media</code> <code class="cls">lineup-face</code> <code class="cls">lineup-name</code> <code class="cls">lineup-sub</code> <code class="cls">lineup-more</code> <code class="cls">lineup-card</code></span></div>
+        <div class="specimen-demo " data-snippet="s21">
+          <div class="col">
+          <span class="label">The Lineup Is Taking Shape</span>
+          <p class="lineup">
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=5" data-title="Susana Amorós" data-sub="Nimble Diagnostics" data-text="Rebuilding Healthcare’s Front Door" data-meta="03/12 · 12:00"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=5"></span><span class="lineup-name">Susana Amorós</span> <span class="lineup-sub text-sky">Nimble Diagnostics</span></span>
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=11" data-title="Víctor Durán" data-sub="Prosper AI" data-text="Rebuilding Healthcare’s Front Door" data-meta="03/12 · 12:00"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=11"></span><span class="lineup-name">Víctor Durán</span> <span class="lineup-sub text-sky">Prosper AI</span></span>
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=13" data-title="Bernat Farrero" data-sub="Factorial" data-text="The Unfiltered Truth About Scaling Up" data-meta="02/12 · 11:45"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=13"></span><span class="lineup-name">Bernat Farrero</span> <span class="lineup-sub text-flame">Factorial</span></span>
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=9" data-title="Jorgina Prado" data-sub="Protofy" data-text="From bits to atoms" data-meta="02/12 · 17:00"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=9"></span><span class="lineup-name">Jorgina Prado</span> <span class="lineup-sub text-sand">Protofy</span></span>
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=12" data-title="Marcos Valera" data-sub="ElevenLabs" data-text="AI has a voice. Would you give it your job?" data-meta="02/12 · 15:30"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=12"></span><span class="lineup-name">Marcos Valera</span> <span class="lineup-sub text-flame">ElevenLabs</span></span>
+            <span class="lineup-item" data-img="https://i.pravatar.cc/240?img=60" data-title="Mateo Valero" data-sub="BSC" data-text="Chips for the next decade" data-meta="03/12 · 10:00"><span class="lineup-media"><img class="lineup-face" alt="" src="https://i.pravatar.cc/240?img=60"></span><span class="lineup-name">Mateo Valero</span> <span class="lineup-sub text-sand">BSC</span></span>
+            <a class="lineup-more" href="#">and many more…</a>
+          </p>
+          <div class="lineup-card" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s21"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s21"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Services (icons + numbers)</span><span class="flex flex-wrap gap-1.5"><code class="cls">lineup</code> <code class="cls">lineup-icon</code> <code class="cls">lineup-num</code> <code class="cls">lineup-card-icon</code></span></div>
+        <div class="specimen-demo " data-snippet="s22">
+          <div class="col">
+          <span class="label">What we do</span>
+          <p class="lineup">
+            <span class="lineup-item" data-icon="pen-tool" data-title="Brand identity" data-sub="Strategy" data-text="Logo, type, colour and rules that scale." data-meta="4–8 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="pen-tool"></i></span></span><span class="lineup-name">Brand identity<span class="lineup-num">01</span></span> <span class="lineup-sub text-flame">Strategy</span></span>
+            <span class="lineup-item" data-icon="layout-grid" data-title="Product design" data-sub="UX/UI" data-text="From first flow to production-ready UI." data-meta="6–16 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="layout-grid"></i></span></span><span class="lineup-name">Product design<span class="lineup-num">02</span></span> <span class="lineup-sub text-amber">UX/UI</span></span>
+            <span class="lineup-item" data-icon="layers" data-title="Design systems" data-sub="Tokens" data-text="One source of truth for design and code." data-meta="4–10 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="layers"></i></span></span><span class="lineup-name">Design systems<span class="lineup-num">03</span></span> <span class="lineup-sub text-sand">Tokens</span></span>
+            <span class="lineup-item" data-icon="clapperboard" data-title="Motion" data-sub="WebGL" data-text="Motion language, 3D and real-time scenes." data-meta="2–8 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="clapperboard"></i></span></span><span class="lineup-name">Motion<span class="lineup-num">04</span></span> <span class="lineup-sub text-ice">WebGL</span></span>
+            <span class="lineup-item" data-icon="code" data-title="Development" data-sub="Front-end" data-text="Static sites and front-ends shipped with the system." data-meta="4–12 weeks"><span class="lineup-media"><span class="lineup-icon"><i data-lucide="code"></i></span></span><span class="lineup-name">Development<span class="lineup-num">05</span></span> <span class="lineup-sub text-sky">Front-end</span></span>
+            <a class="lineup-more" href="#">and something new…</a>
+          </p>
+          <div class="lineup-card" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s22"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s22"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Cases (thumbnails, links, pair)</span><span class="flex flex-wrap gap-1.5"><code class="cls">lineup</code> <code class="cls">a.lineup-item</code> <code class="cls">lineup-media.is-pair</code></span></div>
+        <div class="specimen-demo " data-snippet="s23">
+          <div class="col">
+          <span class="label">Selected cases</span>
+          <p class="lineup">
+            <a class="lineup-item" href="#" data-img="https://picsum.photos/seed/vd-c1/400/400" data-title="Nimble Diagnostics" data-sub="Health · Brand + product" data-text="A calmer patient app: bookings up 38%." data-meta="2025"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c1/240/160"></span><span class="lineup-name">Nimble Diagnostics</span> <span class="lineup-sub text-sky">Health</span></a>
+            <a class="lineup-item" href="#" data-img="https://picsum.photos/seed/vd-c2/400/400" data-title="Prosper AI" data-sub="AI-Native · Product" data-text="Voice-agent console for healthcare teams." data-meta="2025"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c2/240/160"></span><span class="lineup-name">Prosper AI</span> <span class="lineup-sub text-flame">AI-Native</span></a>
+            <a class="lineup-item" href="#" data-img="https://picsum.photos/seed/vd-c3/400/400" data-title="Protofy" data-sub="Robotics · Identity" data-text="An identity that moves like its machines." data-meta="2024"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c3/240/160"></span><span class="lineup-name">Protofy</span> <span class="lineup-sub text-sand">Robotics</span></a>
+            <a class="lineup-item" href="#" data-img="https://picsum.photos/seed/vd-c4/400/400" data-title="Orbit Games" data-sub="Gaming · Motion + web" data-text="A launch site with a real-time world." data-meta="2023"><span class="lineup-media is-pair"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c4/240/160"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c4b/240/160"></span><span class="lineup-name">Orbit Games</span> <span class="lineup-sub text-ice">Gaming</span></a>
+            <a class="lineup-item" href="#" data-img="https://picsum.photos/seed/vd-c5/400/400" data-title="Llotja Studio" data-sub="Creativity · Art direction" data-text="Campaign for a 600-year-old building." data-meta="2023"><span class="lineup-media"><img class="lineup-face" alt="" src="https://picsum.photos/seed/vd-c5/240/160"></span><span class="lineup-name">Llotja Studio</span> <span class="lineup-sub text-azure">Creativity</span></a>
+            <a class="lineup-more" href="#">all cases…</a>
+          </p>
+          <div class="lineup-card" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s23"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s23"></pre></div>
+      </div>      <div class="grid gap-4 text-sm md:grid-cols-3">
+        <div class="border-t border-rule pt-3"><b class="font-semibold">States</b><br><code class="cls">.lineup.is-active</code>: one item has focus. All items go to 28%.<br><code class="cls">.lineup-item.is-on</code>: the active item. It is at 100%, its photo has color, and its icon inverts.<br><code class="cls">.lineup-card.is-on</code>: the card is visible.</div>
+        <div class="border-t border-rule pt-3"><b class="font-semibold">How the parts work together</b><br>One display size, one accent color for the sub-label, and media that acts like a letter. The « / » separators at 25% give rhythm without lines. The list dims other items. It does not highlight the active item. Tracks and the menu use the same method.</div>
+        <div class="border-t border-rule pt-3"><b class="font-semibold">Accessibility</b><br>The script adds <code class="cls">tabindex="0"</code> to items that are not links. Focus shows the card next to the item. The card has <code class="cls">aria-hidden</code> because it repeats the data. <code class="cls">prefers-reduced-motion</code> stops the transitions.</div>
+      </div>
+    </section>
+    <section class="doc-section" id="tracks">
+      <h2 class="doc-h">Tracks (accordion)</h2>
+      <p class="doc-lead">This is a large list. A click opens an item. Hover does not open it. Hover only wakes the line: the other lines dim to 30%. The mark hangs in the hang margin. (On the original site, the mark is an animated orb.) The item opens with a <code class="cls">grid-template-rows: 0fr → 1fr</code> animation. The script does not measure the height. With <code class="cls">data-single</code>, only one item can be open. Use this list for a process or a detailed list of services.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Tracks</span><span class="flex flex-wrap gap-1.5"><code class="cls">tracks</code> <code class="cls">track</code> <code class="cls">track-btn</code> <code class="cls">track-mark</code> <code class="cls">track-name</code> <code class="cls">track-body</code> <code class="cls">tracks-sm</code></span></div>
+        <div class="specimen-demo " data-snippet="s24">
+          <div class="col">
+          <ul class="tracks" data-single>
+            <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark"><i data-lucide="sparkles"></i></span><span class="track-name">AI-Native<span class="sup">1</span></span></button>
+              <div class="track-body"><p>What does a company look like when it is built with AI from day one?</p></div></li>
+            <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark"><i data-lucide="trending-up"></i></span><span class="track-name">Investment<span class="sup">2</span></span></button>
+              <div class="track-body"><p>Where is capital going next, and what does it take to access it?</p></div></li>
+            <li class="track"><button class="track-btn" type="button" aria-expanded="false"><span class="track-mark"><i data-lucide="cpu"></i></span><span class="track-name">Robotics &amp; Hardware<span class="sup">3</span></span></button>
+              <div class="track-body"><p>Intelligence is leaving the screen and entering the physical world.</p></div></li>
+          </ul>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s24"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s24"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="numlist">
+      <h2 class="doc-h">Numbered list</h2>
+      <p class="doc-lead">The number is small text. It hangs to the left of the edge, at cap height. The text does not move.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Numbered</span><span class="flex flex-wrap gap-1.5"><code class="cls">numlist</code> <code class="cls">numlist-item</code> <code class="cls">numlist-n</code></span></div>
+        <div class="specimen-demo " data-snippet="s25">
+          <div class="col"><ol class="numlist">
+            <li class="numlist-item"><span class="numlist-n">01</span>Discover</li>
+            <li class="numlist-item"><span class="numlist-n">02</span>Define</li>
+            <li class="numlist-item"><span class="numlist-n">03</span>Deliver</li>
+          </ol></div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s25"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s25"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="feature">
+      <h2 class="doc-h">Feature, cards, people</h2>
+      <p class="doc-lead">A card is not a box. It is a 1px top line, a meta row, a title, text and people. <code class="cls">.feature</code> uses 7/5 columns with a media slot on the right. (On the original site, the slot holds an orb.) People photos are 4:5 and black and white. They get their color on hover.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Feature</span><span class="flex flex-wrap gap-1.5"><code class="cls">feature</code> <code class="cls">feature-body</code> <code class="cls">feature-title</code> <code class="cls">feature-desc</code> <code class="cls">feature-media</code> <code class="cls">people</code> <code class="cls">person</code> <code class="cls">person-photo</code> <code class="cls">person-name</code> <code class="cls">person-org</code> <code class="cls">person-role</code></span></div>
+        <div class="specimen-demo " data-snippet="s26">
+          <article class="feature">
+            <div class="feature-body">
+              <p class="meta"><span>02/12 · 15:30</span><span class="chip"><i class="dot bg-flame"></i>AI-Native</span><span class="pill pill-live"><i class="dot"></i>Live experiment</span></p>
+              <h3 class="feature-title">AI has a voice. Would you give it your job?</h3>
+              <div class="feature-desc"><p>Three Barcelona startups and their voice agents put to the test.</p></div>
+              <ul class="people">
+                <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=12"><span><span class="person-name">Marcos Valera</span><span class="person-org text-flame">ElevenLabs</span><span class="person-role">Host</span></span></li>
+                <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=33"><span><span class="person-name">Dani Diestre</span><span class="person-org text-flame">Autentic AI</span></span></li>
+                <li class="person"><img class="person-photo" alt="" src="https://i.pravatar.cc/300?img=52"><span><span class="person-name">Emilio Bujosa</span><span class="person-org text-flame">Supersonik</span></span></li>
+              </ul>
+            </div>
+            <div class="feature-media"></div>
+          </article>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s26"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s26"></pre></div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-head"><span>Sessions / case cards</span><span class="flex flex-wrap gap-1.5"><code class="cls">sessions</code> <code class="cls">session</code> <code class="cls">session-title</code> <code class="cls">session-desc</code></span></div>
+        <div class="specimen-demo " data-snippet="s27">
+          <ul class="sessions !mt-0">
+            <li class="session">
+              <p class="meta"><span>03/12 · 12:00</span><span class="chip"><i class="dot bg-sky"></i>Health</span><span class="muted">Keynote</span></p>
+              <h4 class="session-title">Rebuilding Healthcare’s Front Door with AI</h4>
+              <div class="session-desc"><p>Before a patient sees a doctor, calls must be answered and appointments scheduled.</p></div>
+            </li>
+            <li class="session">
+              <p class="meta"><span>02/12 · 11:45</span><span class="chip"><i class="dot bg-flame"></i>AI-Native</span><span class="muted">Panel</span></p>
+              <h4 class="session-title">The Unfiltered Truth About Scaling Up</h4>
+              <div class="session-desc"><p>Size matters. Or does it?</p></div>
+            </li>
+          </ul>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s27"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s27"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="mosaic">
+      <h2 class="doc-h">Mosaic</h2>
+      <p class="doc-lead">This is a dense grid (grid-flow-dense) of tiles with different sizes and rounded-2xl corners. The caption is hidden. On desktop, it shows on hover. On touch screens, it shows when the tile crosses the middle of the screen. Sizes: <code class="cls">.tile-6x3 .tile-6x2 .tile-4x3 .tile-4x2 .tile-3x3 .tile-3x2</code> (columns × rows on the 12-column grid).</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Mosaic</span><span class="flex flex-wrap gap-1.5"><code class="cls">mosaic</code> <code class="cls">tile</code> <code class="cls">tile-cap</code> <code class="cls">tile-6x3</code> <code class="cls">tile-3x3</code> <code class="cls">tile-3x2</code></span></div>
+        <div class="specimen-demo " data-snippet="s28">
+          <div class="mosaic">
+            <figure class="tile tile-6x3"><img alt="" src="https://picsum.photos/seed/vd-t1/1200/800"><figcaption class="tile-cap"><span>Opening keynote</span><em>2025</em></figcaption></figure>
+            <figure class="tile tile-3x3"><img alt="" src="https://picsum.photos/seed/vd-t2/600/800"><figcaption class="tile-cap"><span>Backstage</span><em>2024</em></figcaption></figure>
+            <figure class="tile tile-3x3">Empty tile</figure>
+          </div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s28"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s28"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="countdown">
+      <h2 class="doc-h">Countdown</h2>
+      <p class="doc-lead">The countdown uses display digits with tabular-nums. The units are in <code class="cls">.sup</code>. Set <code class="cls">data-countdown</code> to an ISO date with a time zone.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Countdown</span><span class="flex flex-wrap gap-1.5"><code class="cls">countdown</code> <code class="cls">countdown-unit</code> <code class="cls">sup</code></span></div>
+        <div class="specimen-demo " data-snippet="s29">
+          <span class="label">Counting down to 2 December</span>
+          <p class="countdown" data-countdown="2026-12-02T09:00:00+01:00">
+            <span class="countdown-unit"><span data-unit="d">00</span><span class="sup">days</span></span>
+            <span class="countdown-unit"><span data-unit="h">00</span><span class="sup">hours</span></span>
+            <span class="countdown-unit"><span data-unit="m">00</span><span class="sup">minutes</span></span>
+            <span class="countdown-unit"><span data-unit="s">00</span><span class="sup">seconds</span></span>
+          </p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s29"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s29"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="reveal">
+      <h2 class="doc-h">Word reveal</h2>
+      <p class="doc-lead">For a manifesto: each word starts at 16% opacity. The words light up as you scroll. In a <code class="cls">.drawer</code>, they light up in sequence. Add the <code class="cls">data-reveal</code> attribute to the paragraph.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Reveal</span><span class="flex flex-wrap gap-1.5"><code class="cls">reveal</code> <code class="cls">word</code> <code class="cls">data-reveal</code></span></div>
+        <div class="specimen-demo " data-snippet="s30">
+          <p class="reveal" data-reveal>The horizon is no longer ahead of us. We’re already crossing it.</p>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s30"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s30"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="drawer">
+      <h2 class="doc-h">Drawer</h2>
+      <p class="doc-lead">On desktop, the drawer opens from the right (640px). On phones, it opens from the bottom as a sheet with a grab bar. The scrim is at 55%. To close the drawer, click outside it, click Close or push Esc. The slide takes 450ms with ease-expo.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Drawer trigger</span><span class="flex flex-wrap gap-1.5"><code class="cls">drawer</code> <code class="cls">scrim</code> <code class="cls">drawer-grab</code> <code class="cls">drawer-close</code></span></div>
+        <div class="specimen-demo " data-snippet="s31">
+          <button class="link-icon cursor-pointer" type="button" data-open="doc-drawer">Read the manifesto <i data-lucide="arrow-right"></i></button>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s31"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s31"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="partners">
+      <h2 class="doc-h">Partners and logos</h2>
+      <p class="doc-lead">A line and a label separate the tiers. Logos are white on black at 80% opacity, and 100% on hover. This page uses text placeholders (<code class="cls">.logo-mark</code>). For SVG logos, put an &lt;img&gt; in each &lt;li&gt;.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Tiers</span><span class="flex flex-wrap gap-1.5"><code class="cls">tier</code> <code class="cls">logos</code> <code class="cls">logos-lg</code> <code class="cls">logo-mark</code></span></div>
+        <div class="specimen-demo " data-snippet="s32">
+          <div class="tier"><span class="label">Main partners</span>
+            <ul class="logos logos-lg"><li class="logo-mark">CaixaBank</li><li class="logo-mark">Damm</li><li class="logo-mark">EAE</li><li class="logo-mark">MWCapital</li></ul></div>
+          <div class="tier"><span class="label">Global partners</span>
+            <ul class="logos"><li class="logo-mark">adamo</li><li class="logo-mark">airbnb</li><li class="logo-mark">bis</li><li class="logo-mark">Danone</li><li class="logo-mark">deel.</li><li class="logo-mark">esade</li><li class="logo-mark">olx</li></ul></div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s32"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s32"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="forms">
+      <h2 class="doc-h">Forms</h2>
+      <p class="doc-lead">The original site has no forms. These forms use the same design language. Fields have only a bottom line, like the dividers. Labels are small, dimmed text. On focus, the line changes to fg. <code class="cls">.input-big</code> is a field with display text. <code class="cls">.choice</code> is a checkbox pill (CSS <code class="cls">:has(:checked)</code>).</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Form</span><span class="flex flex-wrap gap-1.5"><code class="cls">form</code> <code class="cls">field</code> <code class="cls">field-full</code> <code class="cls">field-label</code> <code class="cls">field-hint</code> <code class="cls">field-error</code> <code class="cls">input</code> <code class="cls">input-big</code> <code class="cls">textarea</code> <code class="cls">select-wrap</code> <code class="cls">select</code> <code class="cls">check</code> <code class="cls">choice</code></span></div>
+        <div class="specimen-demo " data-snippet="s33">
+          <form class="form" onsubmit="event.preventDefault()">
+            <label class="field field-full"><span class="field-label">Project name</span><input class="input input-big" type="text" placeholder="What comes next"></label>
+            <label class="field"><span class="field-label">Email</span><input class="input" type="email" placeholder="you@company.com"><span class="field-hint">We reply within a day.</span></label>
+            <label class="field"><span class="field-label">Phone</span><input class="input" type="tel" value="+34 000" aria-invalid="true"><span class="field-error">Check the number</span></label>
+            <label class="field"><span class="field-label">Budget</span><span class="select-wrap"><select class="select"><option>€10–25k</option><option>€25–60k</option></select><i data-lucide="chevron-down"></i></span></label>
+            <div class="field"><span class="field-label">Services</span><div class="flex flex-wrap gap-2"><label class="choice"><input type="checkbox" checked>Brand</label><label class="choice"><input type="checkbox">Product</label><label class="choice"><input type="checkbox">Motion</label></div></div>
+            <label class="field field-full"><span class="field-label">Message</span><textarea class="textarea" placeholder="A few lines are enough"></textarea></label>
+            <label class="check field-full"><input type="checkbox">I agree to the privacy policy.</label>
+            <p class="field-full"><button class="btn" type="submit"><span>Send</span><i data-lucide="arrow-right"></i></button></p>
+          </form>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s33"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s33"></pre></div>
+      </div>
+    </section>
+    <section class="doc-section" id="footer">
+      <h2 class="doc-h">Footer</h2>
+      <p class="doc-lead">The footer has four key/value columns below a line. The key is at 50%. On phones, each fact has its own row. The bottom has space for the floating button.</p>
+
+      <div class="specimen">
+        <div class="specimen-head"><span>Info grid</span><span class="flex flex-wrap gap-1.5"><code class="cls">footer</code> <code class="cls">info-grid</code> <code class="cls">info-key</code></span></div>
+        <div class="specimen-demo " data-snippet="s34">
+          <div class="col"><div class="info-grid">
+            <div><span class="info-key">When</span><span>2 and 3 December 2026</span></div>
+            <div><span class="info-key">Where</span><span>Llotja de Mar, Barcelona</span></div>
+            <div><span class="info-key">Contact</span><a class="link" href="#">hello@techbarcelona.com</a></div>
+            <div><span class="info-key">Organised by</span><a class="link" href="#">Tech Barcelona</a></div>
+          </div></div>
+        </div>
+        <div class="specimen-code"><button class="copy" type="button" data-copy="s34"><i data-lucide="copy"></i><span>Copy</span></button><pre id="s34"></pre></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<a class="fab" href="example.html" data-after="#overview"><span class="btn">Example</span></a>
+
+<div class="menu" id="menu" role="dialog" aria-label="Menu">
+  <div class="menu-top">
+    <span class="logo"><span>Videsign</span><span>Design</span><span>System</span></span>
+    <button class="btn-round" type="button" data-menu="menu" aria-label="Close menu"><i data-lucide="x"></i></button>
+  </div>
+  <nav class="menu-list"><a class="menu-link" href="#tokens">Tokens</a><a class="menu-link" href="#buttons">Buttons</a><a class="menu-link" href="#lineup">Lineup</a><a class="menu-link" href="#tracks">Tracks (accordion)</a><a class="menu-link" href="#forms">Forms</a><a class="menu-link" href="example.html">Example</a></nav>
+  <div class="menu-foot"><span>Videsign</span><a class="link" href="https://github.com/markxxv/videsign">GitHub</a></div>
+</div>
+
+<div class="scrim" id="doc-drawer-scrim" hidden></div>
+<aside class="drawer" id="doc-drawer" data-scrim="doc-drawer-scrim" role="dialog" aria-modal="true" aria-label="Manifesto" hidden>
+  <span class="drawer-grab"></span>
+  <button class="drawer-close" type="button" data-close>Close</button>
+  <span class="label mb-6">Manifesto</span>
+  <p class="reveal" data-reveal>For centuries, technology amplified what humans can do. Now, we’re giving them our ability to think.</p>
+  <p class="reveal" data-reveal>And this may be the last frontier we cross as humans alone.</p>
+  <p class="display"><a class="link" href="#">Register now</a></p>
+</aside>
+
+<script src="videsign.js"></script>
+</body>
+</html>
